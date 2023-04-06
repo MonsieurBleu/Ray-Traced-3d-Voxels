@@ -16,7 +16,7 @@ int getvox_old(vec2 uv)
     float y;
     float x;
 
-    bool cond1 = false;
+    bool condx1 = false;
     z = minp.z;
     y = minp.x;
     // x = sqrt(pow(camdir.y*y, 2.f) + pow(camdir.z*z, 2.f)) + campos.y + campos.z;
@@ -28,17 +28,17 @@ int getvox_old(vec2 uv)
 
     x = (y - campos.y)*(camdir.y/camdir.x) + (z - campos.z)*(camdir.z/camdir.x) + campos.x;
     if(x >= minp.x && x <= maxp.x)
-        cond1 = true;
+        condx1 = true;
         
 
-    bool cond2 = false;
+    bool condx2 = false;
     // z = minp.z;
     // x = minp.y;
     // y = sqrt(pow(camdir.x*x, 2.f) + pow(camdir.z*z, 2.f)) + campos.y;
     // if(y >= minp.x && y <= maxp.x)
-    //     cond2 = true;
+    //     condx2 = true;
 
-    if(cond1 || cond2)
+    if(condx1 || condx2)
         return 1;
     
     return 0;
@@ -60,46 +60,28 @@ int getvox(vec2 uv)
 
     // t = (y-y0)/b
 
-    float x;
-    float y;
-    float z;
+    vec3 p;
     float t;
 
-    bool cond1 = false;
-    bool cond2 = false;
-    bool cond3 = false;
-    bool cond4 = false;
-
-    x = minp.x;
-    t = (x-campos.x)/camdir.x;
-
-    y = campos.y + t*camdir.y;
-    z = campos.z + t*camdir.z;
-
-    if(y >= minp.x && y <= maxp.x)
-        cond1 = true;
-    
-    if(z >= minp.z && z <= maxp.z)
-        cond2 = true;
-
-    x = maxp.x;
-    t = (x-campos.x)/camdir.x;
-
-    y = campos.y + t*camdir.y;
-    z = campos.z + t*camdir.z;
-
-    if(y >= minp.x && y <= maxp.x)
-        cond3 = true;
-    
-    if(z >= minp.z && z <= maxp.z)
-        cond4 = true;
+    bool condx1 = false;
+    bool condx2 = false;
+    bool condx3 = false;
+    bool conds4 = false;
 
     int return_val = 0; 
 
-    if(cond1 && cond2) return_val |= 1;
+    t = (minp.x-campos.x)/camdir.x;
+    p.yz = campos.yz + t*camdir.yz;
 
-    if(cond3 && cond4) return_val |= 2;
+    if(p.y >= minp.x && p.y <= maxp.x && p.z >= minp.z && p.z <= maxp.z)
+        return_val |= 1;
 
+
+    t = (maxp.x-campos.x)/camdir.x;
+    p.yz = campos.yz + t*camdir.yz;
+
+    if(p.y >= minp.x && p.y <= maxp.x && p.z >= minp.z && p.z <= maxp.z)
+        return_val |= 2;
 
     return return_val;
 }
@@ -117,7 +99,7 @@ void main()
 
     if((voxel&1) != 0)
     {
-        gl_FragColor.r += 0.5;
+        gl_FragColor.b += 0.5;
     }
 
     if((voxel&2) != 0)
