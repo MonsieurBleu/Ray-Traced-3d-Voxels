@@ -1,7 +1,7 @@
 
 
 vec3 camdir = vec3(1.f, 0.0, 0.0);
-vec3 campos = vec3(-3.f, 0.5, -2.0);
+vec3 campos = vec3(-3.f, 0.0, 0.0);
 float camsize = 1.0;
 
 int getvox_old(vec2 uv)
@@ -54,33 +54,22 @@ int getvox(vec2 uv)
 
     float halflen = 0.5;
 
-    // x = x0 + t * a
-    // y = y0 + t * b
-    // z = z0 + t * c
-
-    // t = (y-y0)/b
-
     vec3 p;
     float t;
-
-    bool condx1 = false;
-    bool condx2 = false;
-    bool condx3 = false;
-    bool conds4 = false;
 
     int return_val = 0; 
 
     t = (minp.x-campos.x)/camdir.x;
     p.yz = campos.yz + t*camdir.yz;
 
-    if(p.y >= minp.x && p.y <= maxp.x && p.z >= minp.z && p.z <= maxp.z)
+    if(p.y >= minp.y && p.y <= maxp.y && p.z >= minp.z && p.z <= maxp.z)
         return_val |= 1;
 
 
     t = (maxp.x-campos.x)/camdir.x;
     p.yz = campos.yz + t*camdir.yz;
 
-    if(p.y >= minp.x && p.y <= maxp.x && p.z >= minp.z && p.z <= maxp.z)
+    if(p.y >= minp.y && p.y <= maxp.y && p.z >= minp.z && p.z <= maxp.z)
         return_val |= 2;
 
     return return_val;
