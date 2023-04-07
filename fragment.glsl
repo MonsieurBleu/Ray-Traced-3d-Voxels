@@ -70,7 +70,9 @@ int getvox(vec2 uv)
     p.yz = campos.yz + t*camdir.yz;
 
     if(p.y >= minp.y && p.y <= maxp.y && p.z >= minp.z && p.z <= maxp.z)
-        return_val |= 2;
+        return_val |= 1;
+
+
 
     return return_val;
 }
@@ -93,6 +95,6 @@ void main()
 
     if((voxel&2) != 0)
     {
-        gl_FragColor.b += 0.5;
+        gl_FragColor.r += 0.5;
     }
 }
