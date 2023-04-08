@@ -1,14 +1,12 @@
 
 
-vec3 camdir = vec3(1.f, 0.0, 1.0);
-vec3 campos = vec3(-5.f, 0.0, -5.0);
+vec3 camdir = vec3(1.f, 0.0, 0.0);
+vec3 campos = vec3(-5.f, 0.0, 0.0);
 float camsize = 1.0;
+float focaldist = 5.0;
 
 int getvox(vec2 uv)
 {
-    campos.y += (0.5-uv.x)*camsize;
-    campos.z += (0.5-uv.y)*camsize;
-
     vec3 maxp = vec3(1, 1, 1);
     vec3 minp = vec3(0, 0, 0);
 
@@ -128,12 +126,20 @@ void main()
     vec2 uv = (gl_FragCoord.xy / iResolution.xx - 0.5) * 8.0;
     gl_FragColor = vec4(0.15, 0.15, 0.15, 1.0);
 
+    camdir.y += cos(time)*0.5;
+    camdir.z += sin(time)*0.5;
 
-    camdir.y += cos(time)*0.25;
-    camdir.z += sin(time)*0.25;
+    // focaldist += cos(time);
+    // camdir = rotate(campos, camdir, 1.0);
 
-    // mat3 rotmat = rotationMatrix(camdir, 2.5);
-    camdir = rotate(campos, camdir, 2.5);
+    // vec3 Projection_point = campos + focaldist*camdir;
+    // Projection_point.y += (0.5-uv.x)*camsize;
+    // Projection_point.z += (0.5-uv.y)*camsize;
+
+    // camdir = campos-Projection_point;
+
+    campos.y += (0.5-uv.x)*camsize;
+    campos.z += (0.5-uv.y)*camsize;
 
     int voxel = getvox(uv);
 
