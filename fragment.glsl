@@ -1,116 +1,89 @@
-const float PI = 3.14159265359;
+#define PI 3.14159265359
+#define MAXSD 99999.0
+#define voxside_x 1
+#define voxside_y 2
+#define voxside_z 3
 
+vec2 uv;
 vec3 camdir = vec3(0.0, 0.0, 0.0);
+vec3 icamdir;
 vec3 campos = vec3(-2.f, -5, -20);
-float camsize = 5.0;
-float focaldist = 5.0;
 
-struct Surface {
+struct Surface
+{
     float sd; // signed distance value
     vec3 col; // color
+    int side;
 };
 
-const float MAXSD = 99999.0;
-
-Surface getvox(vec2 uv, vec3 pos, vec3 size)
+Surface getvox(const vec3 pos, const vec3 size)
 {
     vec3 maxp = pos + size*0.5;
     vec3 minp = pos - size*0.5;
-
-    float halflen = 0.5;
+    vec3 cpicd = -campos*icamdir;
+    vec3 minpicd = minp*icamdir;
+    vec3 maxpicd = maxp*icamdir;
 
     vec3 p;
     float t;
-    float dist = MAXSD;
 
     Surface return_val;
+    return_val.col = vec3(0.75);
     return_val.sd = MAXSD;
 
-    //////////////// X //////////////
-    t = (minp.x-campos.x)/camdir.x;
-    p.yz = campos.yz + t*camdir.yz;
 
-    if(p.y >= minp.y && p.y <= maxp.y && p.z >= minp.z && p.z <= maxp.z)
+    //////////////// X //////////////
+    t = minpicd.x + cpicd.x;
+    p.yz = campos.yz + t*camdir.yz;
+    if(t < return_val.sd && p.y >= minp.y && p.y <= maxp.y && p.z >= minp.z && p.z <= maxp.z)
     {
-        if(t < dist)
-        {
-            return_val.col = vec3(1.0, 0.0, 0.0);
-            return_val.sd = t;
-            dist = t;
-        }
+        return_val.sd = t;
+        return_val.side = voxside_x;
     }
 
-
-    t = (maxp.x-campos.x)/camdir.x;
+    t = maxpicd.x + cpicd.x;
     p.yz = campos.yz + t*camdir.yz;
-
-    if(p.y >= minp.y && p.y <= maxp.y && p.z >= minp.z && p.z <= maxp.z)
+    if(t < return_val.sd && p.y >= minp.y && p.y <= maxp.y && p.z >= minp.z && p.z <= maxp.z)
     {
-        if(t < dist)
-        {
-            return_val.col = vec3(1.0, 0.0, 0.0);
-            return_val.sd = t;
-            dist = t;
-        }
+        return_val.sd = t;
+        return_val.side = voxside_x;
     }
 
 
     //////////////// Y //////////////
-    t = (minp.y-campos.y)/camdir.y;
+    t = maxpicd.y + cpicd.y;
     p.xz = campos.xz + t*camdir.xz;
-
-    if(p.x >= minp.x && p.x <= maxp.x && p.z >= minp.z && p.z <= maxp.z)
+    if(t < return_val.sd && p.x >= minp.x && p.x <= maxp.x && p.z >= minp.z && p.z <= maxp.z)
     {
-        if(t < dist)
-        {
-            return_val.col = vec3(0.0, 1.0, 0.0);
-            return_val.sd = t;
-            dist = t;
-        }
+        return_val.sd = t;
+        return_val.side = voxside_y;
     }
 
-
-    t = (maxp.y-campos.y)/camdir.y;
+    t = minpicd.y + cpicd.y;
     p.xz = campos.xz + t*camdir.xz;
-    if(p.x >= minp.x && p.x <= maxp.x && p.z >= minp.z && p.z <= maxp.z)
+    if(t < return_val.sd && p.x >= minp.x && p.x <= maxp.x && p.z >= minp.z && p.z <= maxp.z)
     {
-        if(t < dist)
-        {
-            return_val.col = vec3(0.0, 1.0, 0.0);
-            return_val.sd = t;
-            dist = t;
-        }
+        return_val.sd = t;
+        return_val.side = voxside_y;
     }
 
 
     //////////////// Z //////////////
-    t = (minp.z-campos.z)/camdir.z;
+    t = minpicd.z + cpicd.z;
     p.xy = campos.xy + t*camdir.xy;
-    if(p.x >= minp.x && p.x <= maxp.x && p.y >= minp.y && p.y <= maxp.y)
+    if(t < return_val.sd && p.x >= minp.x && p.x <= maxp.x && p.y >= minp.y && p.y <= maxp.y)
     {
-        if(t < dist)
-        {
-            return_val.col = vec3(0.0, 0.0, 1.0);
-            return_val.sd = t;
-            dist = t;
-        }
+        return_val.sd = t;
+        return_val.side = voxside_z;
     }
 
-
-    t = (maxp.z-campos.z)/camdir.z;
+    t = maxpicd.z + cpicd.z;
     p.xy = campos.xy + t*camdir.xy;
-    if(p.x >= minp.x && p.x <= maxp.x && p.y >= minp.y && p.y <= maxp.y)
+    if(t < return_val.sd && p.x >= minp.x && p.x <= maxp.x && p.y >= minp.y && p.y <= maxp.y)
     {
-        if(t < dist)
-        {
-            return_val.col = vec3(0.0, 0.0, 1.0);
-            return_val.sd = t;
-            dist = t;
-        }
+        return_val.sd = t;
+        return_val.side = voxside_z;
     }
-
-    if(return_val.sd < 0.0)
-        return_val.sd = MAXSD;
 
     return return_val;
 }
@@ -165,15 +138,12 @@ void main()
 
     // camdir = camera(camtar, camdir) * normalize(vec3(uv, -1));;
 
+    // if(int(gl_FragCoord.x)%2 == 0) discard;
+    // if(int(gl_FragCoord.y)%2 == 0) discard;
 
-
-    vec2 uv = (gl_FragCoord.xy-iResolution.xy*0.5)/iResolution.xx;
+    uv = (gl_FragCoord.xy-iResolution.xy*0.5)/iResolution.xx;
     vec2 mouseUV = iMouse.xy/iResolution.xy; // Range: <0, 1>
-    // mouseUV = vec2(-0.115, 0.2);
-    mouseUV.x += iTime*0.2;
-    // mouseUV.y += sin(iTime*.5)*0.5;
-    // campos.x += cos(iTime)*5.0;
-    // mouseUV = vec2(0.0, 1.0);
+    mouseUV.x += iTime*0.01;
     vec3 backgroundColor = vec3(0.835, 1, 1);
 
     vec3 col = vec3(0);
@@ -192,7 +162,7 @@ void main()
 
     campos = ro;
     camdir = rd;
-
+    icamdir = 1.0/camdir;
 
     // gl_FragColor = vec4(0.15, 0.15, 0.15, 1.0);
 
@@ -210,11 +180,34 @@ void main()
     // campos.y += (0.5-uv.x)*camsize;
     // campos.z += (0.5-uv.y)*camsize;
 
-    Surface voxel;
-    voxel.sd  = MAXSD;
-    voxel.col = vec3(0.15, 0.15, 0.15);
 
-    ivec3 s = ivec3(5);
+    ivec3 s = ivec3(13); 
+    Surface big_voxel = getvox(
+                                vec3( // pos
+                                    0,  
+                                    0, 
+                                    0
+                                    ), 
+                                vec3( // size
+                                    s.x*2 -1, 
+                                    s.y*2 -1, 
+                                    s.z*2 -1
+                                    ));
+
+    if(big_voxel.sd == MAXSD) discard;
+
+
+    Surface voxel;
+    Surface newvoxel;
+    voxel.sd  = MAXSD;
+    voxel.col = vec3(0.0, 0.5, 0.5);
+
+    // 11 : 13 ms
+    // 11 : 95 fps 10-11 ms
+    // 11 : 100 fps 9-10 ms
+    // 11 : 144 fps 7 ms => cap atteint
+
+    // 13 : 102 fps 10-9 ms
 
     for(int z = 0; z < s.z; z++)
     {
@@ -222,26 +215,28 @@ void main()
         {
             for(int x = 0; x < s.x; x++)
             {
-                voxel = occSurface(voxel, getvox(uv, 
+                newvoxel = getvox(
                 vec3(
-                    x*2 - s.x,  
-                    y*2 - s.y, 
-                    z*2 - s.z), 
-                vec3(1, 1, 1)));
+                    float(x*2 - s.x) + 1.0,  
+                    float(y*2 - s.y) + 1.0, 
+                    float(z*2 - s.z) + 1.0), 
+                vec3(1.0, 1.0, 1.0));
+
+                if(newvoxel.sd < voxel.sd) 
+                    voxel = newvoxel;
             }
         }
     }
 
+    gl_FragColor.rgb = voxel.col;
 
-    // for(int i = 0; i < 2<<16; i++)
-    // {
-        // voxel = occSurface(voxel, getvox(uv, vec3(2, 0, 0), vec3(1, 1, 1)));
-        // voxel = occSurface(voxel, getvox(uv, vec3(0, 2, 0), vec3(1, 1, 1)));
-        // voxel = occSurface(voxel, getvox(uv, vec3(0, 0, 0), vec3(1, 1, 1)));
-        // voxel = max(voxel, getvox(uv, vec3(0, 0, 10), vec3(1, 1, 1)));
-    // }
+    vec3 voxside_colodr = vec3(0.85, 1.0, 0.75);
+    switch(voxel.side)
+    {
+        case voxside_x : gl_FragColor *= voxside_colodr.x; break;
+        case voxside_y : gl_FragColor *= voxside_colodr.y; break;
+        case voxside_z : gl_FragColor *= voxside_colodr.z; break;
+    }
 
-
-    gl_FragColor.rgb = voxel.col;   
-    gl_FragColor.a = 12.0;
+    gl_FragColor.a = 1.0;
 }
