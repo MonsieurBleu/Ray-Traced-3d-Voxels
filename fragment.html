@@ -115,119 +115,106 @@ uniform float       iSampleRate;
 #define SHADER_TOY
 
 
-const float PI = 3.14159265359;
+#define PI 3.14159265359
+#define MAXSD 99999.0
+#define voxside_x 1
+#define voxside_y 2
+#define voxside_z 3
 
+vec2 uv;
 vec3 camdir = vec3(0.0, 0.0, 0.0);
-vec3 campos = vec3(-2.f, -5, -20);
-float camsize = 5.0;
-float focaldist = 5.0;
+vec3 icamdir;
+vec3 campos = vec3(-2.f, -5, -25);
 
-struct Surface {
+struct Surface
+{
     float sd; // signed distance value
     vec3 col; // color
+    int side;
 };
 
-const float MAXSD = 99999.0;
-
-Surface getvox(vec2 uv, vec3 pos, vec3 size)
+Surface getvox(const vec3 pos, const vec3 size)
 {
     vec3 maxp = pos + size*0.5;
     vec3 minp = pos - size*0.5;
-
-    float halflen = 0.5;
+    vec3 cpicd = -campos*icamdir;
+    vec3 minpicd = minp*icamdir;
+    vec3 maxpicd = maxp*icamdir;
 
     vec3 p;
     float t;
-    float dist = MAXSD;
 
     Surface return_val;
+    return_val.col = vec3(0.75);
     return_val.sd = MAXSD;
 
+
     //////////////// X //////////////
-    t = (minp.x-campos.x)/camdir.x;
-    p.yz = campos.yz + t*camdir.yz;
-
-    if(p.y >= minp.y && p.y <= maxp.y && p.z >= minp.z && p.z <= maxp.z)
+    if(camdir.x > 0.0)
     {
-        if(t < dist)
+        t = minpicd.x + cpicd.x;
+        p.yz = campos.yz + t*camdir.yz;
+        if(t < return_val.sd && p.y >= minp.y && p.y <= maxp.y && p.z >= minp.z && p.z <= maxp.z)
         {
-            return_val.col = vec3(1.0, 0.0, 0.0);
             return_val.sd = t;
-            dist = t;
+            return_val.side = voxside_x;
         }
     }
-
-
-    t = (maxp.x-campos.x)/camdir.x;
-    p.yz = campos.yz + t*camdir.yz;
-
-    if(p.y >= minp.y && p.y <= maxp.y && p.z >= minp.z && p.z <= maxp.z)
+    else
     {
-        if(t < dist)
+        t = maxpicd.x + cpicd.x;
+        p.yz = campos.yz + t*camdir.yz;
+        if(t < return_val.sd && p.y >= minp.y && p.y <= maxp.y && p.z >= minp.z && p.z <= maxp.z)
         {
-            return_val.col = vec3(1.0, 0.0, 0.0);
             return_val.sd = t;
-            dist = t;
+            return_val.side = voxside_x;
         }
     }
-
 
     //////////////// Y //////////////
-    t = (minp.y-campos.y)/camdir.y;
-    p.xz = campos.xz + t*camdir.xz;
-
-    if(p.x >= minp.x && p.x <= maxp.x && p.z >= minp.z && p.z <= maxp.z)
+    if(camdir.y < 0.0)
     {
-        if(t < dist)
+        t = maxpicd.y + cpicd.y;
+        p.xz = campos.xz + t*camdir.xz;
+        if(t < return_val.sd && p.x >= minp.x && p.x <= maxp.x && p.z >= minp.z && p.z <= maxp.z)
         {
-            return_val.col = vec3(0.0, 1.0, 0.0);
             return_val.sd = t;
-            dist = t;
+            return_val.side = voxside_y;
         }
     }
-
-
-    t = (maxp.y-campos.y)/camdir.y;
-    p.xz = campos.xz + t*camdir.xz;
-    if(p.x >= minp.x && p.x <= maxp.x && p.z >= minp.z && p.z <= maxp.z)
+    else
     {
-        if(t < dist)
+        t = minpicd.y + cpicd.y;
+        p.xz = campos.xz + t*camdir.xz;
+        if(t < return_val.sd && p.x >= minp.x && p.x <= maxp.x && p.z >= minp.z && p.z <= maxp.z)
         {
-            return_val.col = vec3(0.0, 1.0, 0.0);
             return_val.sd = t;
-            dist = t;
+            return_val.side = voxside_y;
         }
-    }
 
+    }
 
     //////////////// Z //////////////
-    t = (minp.z-campos.z)/camdir.z;
-    p.xy = campos.xy + t*camdir.xy;
-    if(p.x >= minp.x && p.x <= maxp.x && p.y >= minp.y && p.y <= maxp.y)
+    if(camdir.z > 0.0)
     {
-        if(t < dist)
+        t = minpicd.z + cpicd.z;
+        p.xy = campos.xy + t*camdir.xy;
+        if(t < return_val.sd && p.x >= minp.x && p.x <= maxp.x && p.y >= minp.y && p.y <= maxp.y)
         {
-            return_val.col = vec3(0.0, 0.0, 1.0);
             return_val.sd = t;
-            dist = t;
+            return_val.side = voxside_z;
         }
     }
-
-
-    t = (maxp.z-campos.z)/camdir.z;
-    p.xy = campos.xy + t*camdir.xy;
-    if(p.x >= minp.x && p.x <= maxp.x && p.y >= minp.y && p.y <= maxp.y)
+    else
     {
-        if(t < dist)
+        t = maxpicd.z + cpicd.z;
+        p.xy = campos.xy + t*camdir.xy;
+        if(t < return_val.sd && p.x >= minp.x && p.x <= maxp.x && p.y >= minp.y && p.y <= maxp.y)
         {
-            return_val.col = vec3(0.0, 0.0, 1.0);
             return_val.sd = t;
-            dist = t;
+            return_val.side = voxside_z;
         }
     }
-
-    if(return_val.sd < 0.0)
-        return_val.sd = MAXSD;
 
     return return_val;
 }
@@ -246,7 +233,7 @@ mat2 rotate2d(float theta) {
   return mat2(c, -s, s, c);
 }
 
-Surface occSurface(Surface s1, Surface s2)
+Surface compSurface(Surface s1, Surface s2)
 {
     // if(s1.sd == MAXSD) return s2;
 
@@ -258,111 +245,113 @@ Surface occSurface(Surface s1, Surface s2)
 
 void main()
 {
-    // float time = iGlobalTime * 1.0;
-    // vec2 uv = gl_FragCoord.xy / iResolution.xx;
-    // gl_FragColor = vec4(0.15, 0.15, 0.15, 1.0);
-
-    // // camdir.y += cos(time)*0.5;
-    // // camdir.z += sin(time)*0.5;
-
-    // // focaldist += cos(time);
-    // // camdir = rotate(campos, camdir, 1.0);
-
-    // // vec3 Projection_point = campos + focaldist*camdir;
-    // // Projection_point.y += (0.5-uv.x)*camsize;
-    // // Projection_point.z += (0.5-uv.y)*camsize;
-
-    // // camdir = campos-Projection_point;
-
-    // vec3 camtar = campos;
-
-    // float cameraRadius = 10.;
-    // camtar.x = cameraRadius * cos(iTime) + campos.x; // convert x-component to polar and add offset 
-    // camtar.z = cameraRadius * sin(iTime) + campos.z; // convert z-component to polar and add offset
-
-    // camdir = camera(camtar, camdir) * normalize(vec3(uv, -1));;
-
-
-
-    vec2 uv = (gl_FragCoord.xy-iResolution.xy*0.5)/iResolution.xx;
+    uv = (gl_FragCoord.xy-iResolution.xy*0.5)/iResolution.xx;
     vec2 mouseUV = iMouse.xy/iResolution.xy; // Range: <0, 1>
-    // mouseUV = vec2(-0.115, 0.2);
-    mouseUV.x += iTime*0.2;
-    // mouseUV.y += sin(iTime*.5)*0.5;
-    // campos.x += cos(iTime)*5.0;
-    // mouseUV = vec2(0.0, 1.0);
+    mouseUV.x += iTime*0.01;
     vec3 backgroundColor = vec3(0.835, 1, 1);
 
     vec3 col = vec3(0);
     vec3 lp = vec3(0, 0, 0); // lookat point (aka camera target)
-    vec3 ro = vec3(3, 10, 1); // ray origin that represents camera position
+    vec3 ro = vec3(3, 10, 2); // ray origin that represents camera position
 
-
-
-    float cameraRadius = 5.0;
+    float cameraRadius = 6.0;
     ro.yz = ro.yz * cameraRadius * rotate2d(mix(PI/2., 0., mouseUV.y));
     ro.xz = ro.xz * rotate2d(mix(-PI, PI, mouseUV.x)) + vec2(lp.x, lp.z);
-    
-    // lp = cameraPos+rd;
 
     vec3 rd = camera(ro, lp) * normalize(vec3(uv, -1)); // ray direction
 
     campos = ro;
     camdir = rd;
+    icamdir = 1.0/camdir;
+    ivec3 s = ivec3(8);
+    ivec3 sh = s/2; 
 
+    vec3 worldorigin = vec3(0.0);
+    vec3 worldsize = vec3(s.x*2-1,s.y*2-1,s.z*2-1);
+    vec3 worldhsize = worldsize*0.50;
+    vec3 worldqsize = worldsize*0.25;
 
-    // gl_FragColor = vec4(0.15, 0.15, 0.15, 1.0);
+    // check if the ray is out of the world
+    Surface world = getvox(worldorigin, worldsize);
+    if(world.sd == MAXSD) discard;
 
-    // vec3 lp = vec3(0, 0, 0);
-
-    // vec2 mouseUV = iMouse.xy/iResolution.xy; // Range: <0, 1>
-    // float cameraRadius = 2.;
-    // camdir.yz = camdir.yz * cameraRadius * rotate2d(mix(PI/2., 0., mouseUV.y));
-    // camdir.xz = camdir.xz * rotate2d(mix(-PI, PI, mouseUV.x)) + vec2(camdir.x, camdir.z);
-
-    // float time = iGlobalTime * 1.0;
-    // vec2 uv = gl_FragCoord.xy/iResolution.xx;
-    // camdir.y += cos(time)*0.5;
-    // camdir.z += sin(time)*0.5;
-    // campos.y += (0.5-uv.x)*camsize;
-    // campos.z += (0.5-uv.y)*camsize;
+    Surface subvoxels[8];
+    vec3 subworldorigin[8];
+    subworldorigin[0] = vec3(worldorigin.x - worldqsize.x, worldorigin.y - worldqsize.y, worldorigin.z - worldqsize.z);
+    subworldorigin[1] = vec3(worldorigin.x - worldqsize.x, worldorigin.y - worldqsize.y, worldorigin.z + worldqsize.z);
+    subworldorigin[2] = vec3(worldorigin.x - worldqsize.x, worldorigin.y + worldqsize.y, worldorigin.z - worldqsize.z);
+    subworldorigin[3] = vec3(worldorigin.x - worldqsize.x, worldorigin.y + worldqsize.y, worldorigin.z + worldqsize.z);
+    subworldorigin[4] = vec3(worldorigin.x + worldqsize.x, worldorigin.y - worldqsize.y, worldorigin.z - worldqsize.z);
+    subworldorigin[5] = vec3(worldorigin.x + worldqsize.x, worldorigin.y - worldqsize.y, worldorigin.z + worldqsize.z);
+    subworldorigin[6] = vec3(worldorigin.x + worldqsize.x, worldorigin.y + worldqsize.y, worldorigin.z - worldqsize.z);
+    subworldorigin[7] = vec3(worldorigin.x + worldqsize.x, worldorigin.y + worldqsize.y, worldorigin.z + worldqsize.z);
+    subvoxels[0] = getvox(subworldorigin[0], worldhsize);
+    subvoxels[1] = getvox(subworldorigin[1], worldhsize);
+    subvoxels[2] = getvox(subworldorigin[2], worldhsize);
+    subvoxels[3] = getvox(subworldorigin[3], worldhsize);
+    subvoxels[4] = getvox(subworldorigin[4], worldhsize);
+    subvoxels[5] = getvox(subworldorigin[5], worldhsize);
+    subvoxels[6] = getvox(subworldorigin[6], worldhsize);
+    subvoxels[7] = getvox(subworldorigin[7], worldhsize);
 
     Surface voxel;
+    Surface newvoxel;
     voxel.sd  = MAXSD;
-    voxel.col = vec3(0.15, 0.15, 0.15);
-
-    ivec3 s = ivec3(5);
-
-    for(int z = 0; z < s.z; z++)
+    voxel.col = vec3(0.0, 0.5, 0.5);
+    
+    for(int i = 0; i < 8; i++)
     {
-        for(int y = 0; y < s.y; y++)
+        if(subvoxels[i].sd > voxel.sd) continue;
+
+        worldorigin = subworldorigin[i];
+
+        for(int z = 0; z < s.z/2; z++)
+        for(int y = 0; y < s.y/2; y++)
+        for(int x = 0; x < s.x/2; x++)
         {
-            for(int x = 0; x < s.x; x++)
-            {
-                voxel = occSurface(voxel, getvox(uv, 
-                vec3(
-                    x*2 - s.x,  
-                    y*2 - s.y, 
-                    z*2 - s.z), 
-                vec3(1, 1, 1)));
-            }
+            newvoxel = getvox(
+            worldorigin + vec3(
+                float(x*2 - s.x/2) + 1.0,  
+                float(y*2 - s.y/2) + 1.0, 
+                float(z*2 - s.z/2) + 1.0), 
+            vec3(1.0, 1.0, 1.0));
+
+            if(newvoxel.sd < voxel.sd) 
+                voxel = newvoxel;
         }
     }
 
 
-    // for(int i = 0; i < 2<<16; i++)
+    // if(subvoxels[0].sd != MAXSD && subvoxels[0].sd <= voxel.sd)
     // {
-        // voxel = occSurface(voxel, getvox(uv, vec3(2, 0, 0), vec3(1, 1, 1)));
-        // voxel = occSurface(voxel, getvox(uv, vec3(0, 2, 0), vec3(1, 1, 1)));
-        // voxel = occSurface(voxel, getvox(uv, vec3(0, 0, 0), vec3(1, 1, 1)));
-        // voxel = max(voxel, getvox(uv, vec3(0, 0, 10), vec3(1, 1, 1)));
+    //     gl_FragColor = vec4(0.5, 0.5, 1.0, 1.0);
+    //     return;
     // }
 
+    gl_FragColor.rgb = voxel.col;
 
-    gl_FragColor.rgb = voxel.col;   
-    gl_FragColor.a = 12.0;
+    vec3 voxside_colodr = vec3(0.85, 1.0, 0.75);
+    switch(voxel.side)
+    {
+        case voxside_x : gl_FragColor *= voxside_colodr.x; break;
+        case voxside_y : gl_FragColor *= voxside_colodr.y; break;
+        case voxside_z : gl_FragColor *= voxside_colodr.z; break;
+    }
+
+    gl_FragColor.a = 1.0;
 }
 
+///// BENCH
+// 11 : 13 ms
+// 11 : 95 fps 10-11 ms
+// 11 : 100 fps 9-10 ms
+// 11 : 144 fps 7 ms => cap atteint
+
+// 13 : 102 fps 10-9 ms
+
+// 16 : 47fps 20-21ms 
+// 16 : 56fps 18ms 
+// 16 : 144fps 7ms 
 </script>
 
 <script type="text/javascript">
@@ -510,9 +499,9 @@ void main()
 
     let renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, context: gl, preserveDrawingBuffer: true });
     let resolution = new THREE.Vector3();
-    let mouse = new THREE.Vector4(106, 295, -107, -295);
+    let mouse = new THREE.Vector4(229, 452, -230, -452);
     let mouseButton = new THREE.Vector4(0, 0, 0, 0);
-    let normalizedMouse = new THREE.Vector2(0.2034548944337812, 0.41374474053295934);
+    let normalizedMouse = new THREE.Vector2(0.28271604938271605, 0.6339410939691444);
     let frameCounter = 0;
 
     // Audio Init
