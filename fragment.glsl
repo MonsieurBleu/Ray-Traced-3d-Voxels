@@ -181,7 +181,7 @@ void main()
     // campos.z += (0.5-uv.y)*camsize;
 
 
-    ivec3 s = ivec3(13); 
+    ivec3 s = ivec3(10); 
     Surface big_voxel = getvox(
                                 vec3( // pos
                                     0,  
