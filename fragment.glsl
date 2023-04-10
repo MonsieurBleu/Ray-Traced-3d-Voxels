@@ -126,7 +126,7 @@ Surface compSurface(Surface s1, Surface s2)
         return s2;
 }
 
-void sorthoctSurface(Surface s[8])
+void sorthoctSurface(Surface s[8]) // old
 {
     float tmp;
     for(int i = 0; i < 8; i++)
@@ -155,9 +155,9 @@ void main()
 
     vec3 col = vec3(0);
     vec3 lp = vec3(0, 0, 0); // lookat point (aka camera target)
-    vec3 ro = vec3(3, 10, 2); // ray origin that represents camera position
+    vec3 ro = vec3(3, 10, 10); // ray origin that represents camera position
 
-    float cameraRadius = 6.0;
+    float cameraRadius = 7.0;
     ro.yz = ro.yz * cameraRadius * rotate2d(mix(PI/2., 0., mouseUV.y));
     ro.xz = ro.xz * rotate2d(mix(-PI, PI, mouseUV.x)) + vec2(lp.x, lp.z);
 
@@ -166,7 +166,7 @@ void main()
     campos = ro;
     camdir = rd;
     icamdir = 1.0/camdir;
-    ivec3 s = ivec3(8);
+    ivec3 s = ivec3(20);
     ivec3 sh = s/2; 
 
     vec3 worldorigin = vec3(0.0);
