@@ -3,7 +3,7 @@
 #define voxside_x 1
 #define voxside_y 2
 #define voxside_z 3
-#define MAX_OCTDEPTH 6
+#define MAX_OCTDEPTH 2
 
 vec2 uv;
 vec3 camdir = vec3(0.0, 0.0, 0.0);
@@ -19,18 +19,23 @@ struct Surface
 
 struct OctNode
 {
-    bool is_node;
+    bool is_leaf;
     vec3 col;
-
-
+    int  childs[8];
+    int  parent;
 };
+
+OctNode World[128];
 
 struct trace_recstat
 {
     Surface subvoxels[8];
     vec3 suborigin[8];
     vec3 size;
+    int curNode;
 };
+
+trace_recstat stack[MAX_OCTDEPTH+1];
 
 Surface getvox(const vec3 pos, const vec3 size)
 {
@@ -44,9 +49,7 @@ Surface getvox(const vec3 pos, const vec3 size)
     float t;
 
     Surface return_val;
-    return_val.col = vec3(0.75);
     return_val.sd = MAXSD;
-
 
     //////////////// X //////////////
     if(camdir.x > 0.0)
@@ -132,74 +135,70 @@ mat2 rotate2d(float theta) {
   return mat2(c, -s, s, c);
 }
 
-trace_recstat getSubVoxels(vec3 origin, vec3 size)
+void getSubVoxels(int depth, vec3 origin, vec3 size)
 {
-    trace_recstat s;
-
     vec3 hsize = size*0.5;
     vec3 qsize = size*0.25;
 
-    s.size = hsize;
+    stack[depth].size = hsize;
 
-    s.suborigin[0] = vec3(origin.x - qsize.x, origin.y - qsize.y, origin.z - qsize.z);
-    s.suborigin[1] = vec3(origin.x - qsize.x, origin.y - qsize.y, origin.z + qsize.z);
-    s.suborigin[2] = vec3(origin.x - qsize.x, origin.y + qsize.y, origin.z - qsize.z);
-    s.suborigin[3] = vec3(origin.x - qsize.x, origin.y + qsize.y, origin.z + qsize.z);
-    s.suborigin[4] = vec3(origin.x + qsize.x, origin.y - qsize.y, origin.z - qsize.z);
-    s.suborigin[5] = vec3(origin.x + qsize.x, origin.y - qsize.y, origin.z + qsize.z);
-    s.suborigin[6] = vec3(origin.x + qsize.x, origin.y + qsize.y, origin.z - qsize.z);
-    s.suborigin[7] = vec3(origin.x + qsize.x, origin.y + qsize.y, origin.z + qsize.z);
-    s.subvoxels[0] = getvox(s.suborigin[0], hsize);
-    s.subvoxels[1] = getvox(s.suborigin[1], hsize);
-    s.subvoxels[2] = getvox(s.suborigin[2], hsize);
-    s.subvoxels[3] = getvox(s.suborigin[3], hsize);
-    s.subvoxels[4] = getvox(s.suborigin[4], hsize);
-    s.subvoxels[5] = getvox(s.suborigin[5], hsize);
-    // s.subvoxels[6] = getvox(s.suborigin[6], hsize);
-    // s.subvoxels[7] = getvox(s.suborigin[7], hsize);
 
-    s.subvoxels[6].sd = MAXSD;
-    s.subvoxels[7].sd = MAXSD;
 
-    s.subvoxels[0].col = vec3(0.0, 0.0, 0.0)+0.25;
-    s.subvoxels[1].col = vec3(0.0, 0.0, 0.5)+0.25;
-    s.subvoxels[2].col = vec3(0.0, 0.5, 0.0)+0.25;
-    s.subvoxels[3].col = vec3(0.0, 0.5, 0.5)+0.25;
-    s.subvoxels[4].col = vec3(0.5, 0.0, 0.0)+0.25;
-    s.subvoxels[5].col = vec3(0.5, 0.0, 0.5)+0.25;
-    s.subvoxels[6].col = vec3(0.5, 0.5, 0.0)+0.25;
-    s.subvoxels[7].col = vec3(0.5, 0.5, 0.5)+0.25;
+    stack[depth].suborigin[0] = vec3(origin.x - qsize.x, origin.y - qsize.y, origin.z - qsize.z);
+    stack[depth].suborigin[1] = vec3(origin.x - qsize.x, origin.y - qsize.y, origin.z + qsize.z);
+    stack[depth].suborigin[2] = vec3(origin.x - qsize.x, origin.y + qsize.y, origin.z - qsize.z);
+    stack[depth].suborigin[3] = vec3(origin.x - qsize.x, origin.y + qsize.y, origin.z + qsize.z);
+    stack[depth].suborigin[4] = vec3(origin.x + qsize.x, origin.y - qsize.y, origin.z - qsize.z);
+    stack[depth].suborigin[5] = vec3(origin.x + qsize.x, origin.y - qsize.y, origin.z + qsize.z);
+    stack[depth].suborigin[6] = vec3(origin.x + qsize.x, origin.y + qsize.y, origin.z - qsize.z);
+    stack[depth].suborigin[7] = vec3(origin.x + qsize.x, origin.y + qsize.y, origin.z + qsize.z);
+    stack[depth].subvoxels[0] = getvox(stack[depth].suborigin[0], hsize);
+    stack[depth].subvoxels[1] = getvox(stack[depth].suborigin[1], hsize);
+    stack[depth].subvoxels[2] = getvox(stack[depth].suborigin[2], hsize);
+    stack[depth].subvoxels[3] = getvox(stack[depth].suborigin[3], hsize);
+    stack[depth].subvoxels[4] = getvox(stack[depth].suborigin[4], hsize);
+    stack[depth].subvoxels[5] = getvox(stack[depth].suborigin[5], hsize);
+    // stack[depth].subvoxels[6] = getvox(stack[depth].suborigin[6], hsize);
+    // stack[depth].subvoxels[7] = getvox(stack[depth].suborigin[7], hsize);
+    stack[depth].subvoxels[6].sd = MAXSD;
+    stack[depth].subvoxels[7].sd = MAXSD;
+
+    stack[depth].subvoxels[0].col = vec3(0.0, 0.0, 0.0)+0.25;
+    stack[depth].subvoxels[1].col = vec3(0.0, 0.0, 0.5)+0.25;
+    stack[depth].subvoxels[2].col = vec3(0.0, 0.5, 0.0)+0.25;
+    stack[depth].subvoxels[3].col = vec3(0.0, 0.5, 0.5)+0.25;
+    stack[depth].subvoxels[4].col = vec3(0.5, 0.0, 0.0)+0.25;
+    stack[depth].subvoxels[5].col = vec3(0.5, 0.0, 0.5)+0.25;
+    stack[depth].subvoxels[6].col = vec3(0.5, 0.5, 0.0)+0.25;
+    stack[depth].subvoxels[7].col = vec3(0.5, 0.5, 0.5)+0.25;
 
     //Sorting subvoxels
     Surface tmp;
     vec3 vtmp;
     for(int i = 0; i < 4; i++) // We only want the 4 mins distances
     {
-        float minsd = s.subvoxels[i].sd;
+        float minsd = stack[depth].subvoxels[i].sd;
 
         for(int j = i; j < 8; j++)
         {
-            if(minsd > s.subvoxels[j].sd)
+            if(minsd > stack[depth].subvoxels[j].sd)
             {
-                tmp = s.subvoxels[i];
-                s.subvoxels[i] = s.subvoxels[j];
-                s.subvoxels[j] = tmp;
-                minsd = s.subvoxels[i].sd;
+                tmp = stack[depth].subvoxels[i];
+                stack[depth].subvoxels[i] = stack[depth].subvoxels[j];
+                stack[depth].subvoxels[j] = tmp;
+                minsd = stack[depth].subvoxels[i].sd;
 
-                vtmp = s.suborigin[i];
-                s.suborigin[i] = s.suborigin[j];
-                s.suborigin[j] = vtmp;
+                vtmp = stack[depth].suborigin[i];
+                stack[depth].suborigin[i] = stack[depth].suborigin[j];
+                stack[depth].suborigin[j] = vtmp;
             }
         }
     }
-
-    return s;
 }
 
 Surface trace(vec3 origin, vec3 size, int depth)
 {
-    trace_recstat stack[MAX_OCTDEPTH+1];
-    stack[0] = getSubVoxels(origin, size);
+    getSubVoxels(0, origin, size);
     int i[MAX_OCTDEPTH+1];
     
     i[0] = 0;
@@ -217,7 +216,7 @@ Surface trace(vec3 origin, vec3 size, int depth)
             }
             else
             {
-                stack[depth+1] = getSubVoxels(stack[depth].suborigin[i[depth]], stack[depth].size);
+                getSubVoxels(depth+1, stack[depth].suborigin[i[depth]], stack[depth].size);
                 depth++;
                 i[depth] = -1;
             }
@@ -233,13 +232,27 @@ Surface trace(vec3 origin, vec3 size, int depth)
     return voxel;
 }
 
+void test_generateWorld()
+{
+    World[0].is_leaf = false;
+    World[0].col = vec3(1.0);
+    
+    for(int i = 0; i < 8; i++)
+    {
+        World[0].childs[i] = i;
+        World[i].is_leaf = true;
+        World[i].col = vec3(1.0)/float(i);
+        World[i].parent = 0;
+    }
+}
 
 void main()
 {
+    // test_generateWorld();
     uv = (gl_FragCoord.xy-iResolution.xy*0.5)/iResolution.xx;
     vec2 mouseUV = iMouse.xy/iResolution.xy; // Range: <0, 1>
     mouseUV.x += iTime*0.01;
-    vec3 backgroundColor = vec3(0.1, 0.5, 0.5);
+    vec3 backgroundColor = vec3(101.f, 194.f, 245.f)/256.f;
 
     vec3 col = vec3(0);
     vec3 lp = vec3(0, 0, 0); // lookat point (aka camera target)
@@ -261,8 +274,8 @@ void main()
     vec3 worldqsize = worldsize*0.25;
 
     // check if the ray is out of the world
-    // Surface world = getvox(worldorigin, worldsize);
-    // if(world.sd == MAXSD) discard;
+    Surface world = getvox(worldorigin, worldsize);
+    if(world.sd == MAXSD) discard;
 
     Surface voxel = trace(worldorigin, worldsize, 0);
 
@@ -280,8 +293,7 @@ void main()
 
     }
     else
-        discard;
-        // gl_FragColor.rgb = backgroundColor;
+        gl_FragColor.rgb = backgroundColor;
 
     gl_FragColor.a = 1.0;
 }

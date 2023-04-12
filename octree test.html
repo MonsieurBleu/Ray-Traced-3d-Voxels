@@ -87,7 +87,7 @@ requestAnimationFrame(function loop() {
 
 <!-- Shaders -->
 
-<script id='c:/DEV/projects/3D-Shaders-experiment/octree test.glsl' type='x-shader/x-fragment'>
+<script id='c:/Users/arthu/Desktop/3D-Shaders-experiment/octree test.glsl' type='x-shader/x-fragment'>
 uniform vec3        iResolution;
 uniform float       iTime;
 uniform float       iTimeDelta;
@@ -116,11 +116,11 @@ uniform float       iSampleRate;
 
 
 #define PI 3.14159265359
-#define MAXSD 99999.0
+#define MAXSD 200000.0
 #define voxside_x 1
 #define voxside_y 2
 #define voxside_z 3
-#define MAX_OCTDEPTH 1
+#define MAX_OCTDEPTH 3
 
 vec2 uv;
 vec3 camdir = vec3(0.0, 0.0, 0.0);
@@ -148,6 +148,8 @@ struct trace_recstat
     vec3 suborigin[8];
     vec3 size;
 };
+
+trace_recstat stack[MAX_OCTDEPTH+1];
 
 Surface getvox(const vec3 pos, const vec3 size)
 {
@@ -249,70 +251,69 @@ mat2 rotate2d(float theta) {
   return mat2(c, -s, s, c);
 }
 
-trace_recstat getSubVoxels(vec3 origin, vec3 size)
+void getSubVoxels(int depth, vec3 origin, vec3 size)
 {
-    trace_recstat s;
-
     vec3 hsize = size*0.5;
     vec3 qsize = size*0.25;
 
-    s.size = hsize;
+    stack[depth].size = hsize;
 
-    s.suborigin[0] = vec3(origin.x - qsize.x, origin.y - qsize.y, origin.z - qsize.z);
-    s.suborigin[1] = vec3(origin.x - qsize.x, origin.y - qsize.y, origin.z + qsize.z);
-    s.suborigin[2] = vec3(origin.x - qsize.x, origin.y + qsize.y, origin.z - qsize.z);
-    s.suborigin[3] = vec3(origin.x - qsize.x, origin.y + qsize.y, origin.z + qsize.z);
-    s.suborigin[4] = vec3(origin.x + qsize.x, origin.y - qsize.y, origin.z - qsize.z);
-    s.suborigin[5] = vec3(origin.x + qsize.x, origin.y - qsize.y, origin.z + qsize.z);
-    s.suborigin[6] = vec3(origin.x + qsize.x, origin.y + qsize.y, origin.z - qsize.z);
-    s.suborigin[7] = vec3(origin.x + qsize.x, origin.y + qsize.y, origin.z + qsize.z);
-    s.subvoxels[0] = getvox(s.suborigin[0], hsize);
-    s.subvoxels[1] = getvox(s.suborigin[1], hsize);
-    s.subvoxels[2] = getvox(s.suborigin[2], hsize);
-    s.subvoxels[3] = getvox(s.suborigin[3], hsize);
-    s.subvoxels[4] = getvox(s.suborigin[4], hsize);
-    s.subvoxels[5] = getvox(s.suborigin[5], hsize);
-    s.subvoxels[6] = getvox(s.suborigin[6], hsize);
-    s.subvoxels[7] = getvox(s.suborigin[7], hsize);
-    s.subvoxels[0].col = vec3(0.0, 0.0, 0.0)+0.25;
-    s.subvoxels[1].col = vec3(0.0, 0.0, 0.5)+0.25;
-    s.subvoxels[2].col = vec3(0.0, 0.5, 0.0)+0.25;
-    s.subvoxels[3].col = vec3(0.0, 0.5, 0.5)+0.25;
-    s.subvoxels[4].col = vec3(0.5, 0.0, 0.0)+0.25;
-    s.subvoxels[5].col = vec3(0.5, 0.0, 0.5)+0.25;
-    s.subvoxels[6].col = vec3(0.5, 0.5, 0.0)+0.25;
-    s.subvoxels[7].col = vec3(0.5, 0.5, 0.5)+0.25;
+    stack[depth].suborigin[0] = vec3(origin.x - qsize.x, origin.y - qsize.y, origin.z - qsize.z);
+    stack[depth].suborigin[1] = vec3(origin.x - qsize.x, origin.y - qsize.y, origin.z + qsize.z);
+    stack[depth].suborigin[2] = vec3(origin.x - qsize.x, origin.y + qsize.y, origin.z - qsize.z);
+    stack[depth].suborigin[3] = vec3(origin.x - qsize.x, origin.y + qsize.y, origin.z + qsize.z);
+    stack[depth].suborigin[4] = vec3(origin.x + qsize.x, origin.y - qsize.y, origin.z - qsize.z);
+    stack[depth].suborigin[5] = vec3(origin.x + qsize.x, origin.y - qsize.y, origin.z + qsize.z);
+    stack[depth].suborigin[6] = vec3(origin.x + qsize.x, origin.y + qsize.y, origin.z - qsize.z);
+    stack[depth].suborigin[7] = vec3(origin.x + qsize.x, origin.y + qsize.y, origin.z + qsize.z);
+    stack[depth].subvoxels[0] = getvox(stack[depth].suborigin[0], hsize);
+    stack[depth].subvoxels[1] = getvox(stack[depth].suborigin[1], hsize);
+    stack[depth].subvoxels[2] = getvox(stack[depth].suborigin[2], hsize);
+    stack[depth].subvoxels[3] = getvox(stack[depth].suborigin[3], hsize);
+    stack[depth].subvoxels[4] = getvox(stack[depth].suborigin[4], hsize);
+    stack[depth].subvoxels[5] = getvox(stack[depth].suborigin[5], hsize);
+    // stack[depth].subvoxels[6] = getvox(stack[depth].suborigin[6], hsize);
+    // stack[depth].subvoxels[7] = getvox(stack[depth].suborigin[7], hsize);
 
-    // Sorting subvoxels
+    stack[depth].subvoxels[6].sd = MAXSD;
+    stack[depth].subvoxels[7].sd = MAXSD;
+
+    stack[depth].subvoxels[0].col = vec3(0.0, 0.0, 0.0)+0.25;
+    stack[depth].subvoxels[1].col = vec3(0.0, 0.0, 0.5)+0.25;
+    stack[depth].subvoxels[2].col = vec3(0.0, 0.5, 0.0)+0.25;
+    stack[depth].subvoxels[3].col = vec3(0.0, 0.5, 0.5)+0.25;
+    stack[depth].subvoxels[4].col = vec3(0.5, 0.0, 0.0)+0.25;
+    stack[depth].subvoxels[5].col = vec3(0.5, 0.0, 0.5)+0.25;
+    stack[depth].subvoxels[6].col = vec3(0.5, 0.5, 0.0)+0.25;
+    stack[depth].subvoxels[7].col = vec3(0.5, 0.5, 0.5)+0.25;
+
+    //Sorting subvoxels
     Surface tmp;
     vec3 vtmp;
     for(int i = 0; i < 4; i++) // We only want the 4 mins distances
     {
-        float minsd = s.subvoxels[i].sd;
+        float minsd = stack[depth].subvoxels[i].sd;
 
         for(int j = i; j < 8; j++)
         {
-            if(minsd > s.subvoxels[j].sd)
+            if(minsd > stack[depth].subvoxels[j].sd)
             {
-                tmp = s.subvoxels[i];
-                s.subvoxels[i] = s.subvoxels[j];
-                s.subvoxels[j] = tmp;
-                minsd = s.subvoxels[i].sd;
+                tmp = stack[depth].subvoxels[i];
+                stack[depth].subvoxels[i] = stack[depth].subvoxels[j];
+                stack[depth].subvoxels[j] = tmp;
+                minsd = stack[depth].subvoxels[i].sd;
 
-                vtmp = s.suborigin[i];
-                s.suborigin[i] = s.suborigin[j];
-                s.suborigin[j] = vtmp;
+                vtmp = stack[depth].suborigin[i];
+                stack[depth].suborigin[i] = stack[depth].suborigin[j];
+                stack[depth].suborigin[j] = vtmp;
             }
         }
     }
-
-    return s;
 }
 
 Surface trace(vec3 origin, vec3 size, int depth)
 {
-    trace_recstat stack[MAX_OCTDEPTH+1];
-    stack[0] = getSubVoxels(origin, size);
+    getSubVoxels(0, origin, size);
     int i[MAX_OCTDEPTH+1];
     
     i[0] = 0;
@@ -320,53 +321,28 @@ Surface trace(vec3 origin, vec3 size, int depth)
     Surface voxel;
     voxel.sd = MAXSD;
 
-    for(i[depth] = 0; i[depth] < 4; i[depth]++)
+    for(i[depth] = 0; i[depth] < 8; i[depth]++)
     {
-        if(MAXSD > stack[depth].subvoxels[i[depth]].sd)
+        if(stack[depth].subvoxels[i[depth]].sd < voxel.sd)
         {
             if(depth == MAX_OCTDEPTH)
+            {
                 return stack[depth].subvoxels[i[depth]];
-
+            }
             else
             {
-                stack[depth+1] = getSubVoxels(stack[depth].suborigin[i[depth]], stack[depth].size);
+                getSubVoxels(depth+1, stack[depth].suborigin[i[depth]], stack[depth].size);
                 depth++;
+                i[depth] = -1;
             }
         }
 
-        if(depth > 0 && i[depth] == 3)
+        if(depth > 0 && i[depth] == 7)
         {
-            i[depth] = 0;
+            //i[depth] = 0;
             depth--;
         }
     }
-
-
-    // if(depth == MAX_OCTDEPTH)
-    // {
-    //     for(int i = 0; i < 4; i++)
-    //     {
-    //         if(voxel.sd >= stack[depth].subvoxels[i].sd && stack[depth].subvoxels[i].sd < MAXSD)
-    //         {
-    //             voxel = stack[depth].subvoxels[i];
-    //             break;
-    //         }
-    //     }
-    // }
-    // else
-    // {
-    //     // Surface newvoxel = voxel;
-
-    //     // for(int i = 0; i < 4; i++)
-    //     // {
-    //     //     // newvoxel = trace(stack[depth].suborigin[i], hsize, depth+1);
-    //     //     // if(voxel.sd >= newvoxel.sd && newvoxel.sd < MAXSD)
-    //     //     // {
-    //     //     //     voxel = newvoxel;
-    //     //     //     break;
-    //     //     // }
-    //     // }
-    // }
 
     return voxel;
 }
@@ -377,13 +353,13 @@ void main()
     uv = (gl_FragCoord.xy-iResolution.xy*0.5)/iResolution.xx;
     vec2 mouseUV = iMouse.xy/iResolution.xy; // Range: <0, 1>
     mouseUV.x += iTime*0.01;
-    vec3 backgroundColor = vec3(0.1, 0.5, 0.5);
+    vec3 backgroundColor = vec3(101.f, 194.f, 245.f)/256.f;
 
     vec3 col = vec3(0);
     vec3 lp = vec3(0, 0, 0); // lookat point (aka camera target)
     vec3 ro = vec3(3, 10, 10); // ray origin that represents camera position
 
-    float cameraRadius = 700.0;
+    float cameraRadius = 7000.0;
     ro.yz = ro.yz * cameraRadius * rotate2d(mix(PI/2., 0., mouseUV.y));
     ro.xz = ro.xz * rotate2d(mix(-PI, PI, mouseUV.x)) + vec2(lp.x, lp.z);
 
@@ -394,7 +370,7 @@ void main()
     icamdir = 1.0/camdir;
 
     vec3 worldorigin = vec3(0.0);
-    vec3 worldsize = vec3(5000,5000,5000);
+    vec3 worldsize = vec3(50000);
     vec3 worldhsize = worldsize*0.50;
     vec3 worldqsize = worldsize*0.25;
 
@@ -418,8 +394,7 @@ void main()
 
     }
     else
-        discard;
-        // gl_FragColor.rgb = backgroundColor;
+        gl_FragColor.rgb = backgroundColor;
 
     gl_FragColor.a = 1.0;
 }
@@ -584,9 +559,9 @@ void main()
 
     let renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, context: gl, preserveDrawingBuffer: true });
     let resolution = new THREE.Vector3();
-    let mouse = new THREE.Vector4(-1, -1, -1, -1);
+    let mouse = new THREE.Vector4(445, 434, -297, -340);
     let mouseButton = new THREE.Vector4(0, 0, 0, 0);
-    let normalizedMouse = new THREE.Vector2(0, 0);
+    let normalizedMouse = new THREE.Vector2(0.004665629860031105, 0.3475609756097561);
     let frameCounter = 0;
 
     // Audio Init
@@ -598,8 +573,8 @@ void main()
     let buffers = [];
     // Buffers
     buffers.push({
-        Name: 'c:/DEV/projects/3D-Shaders-experiment/octree test.glsl',
-        File: 'c:/DEV/projects/3D-Shaders-experiment/octree test.glsl',
+        Name: 'c:/Users/arthu/Desktop/3D-Shaders-experiment/octree test.glsl',
+        File: 'c:/Users/arthu/Desktop/3D-Shaders-experiment/octree test.glsl',
         LineOffset: 133,
         Target: null,
         ChannelResolution: Array(10).fill(new THREE.Vector3(0,0,0)),
@@ -607,7 +582,7 @@ void main()
         PingPongChannel: 0,
         Dependents: [],
         Shader: new THREE.ShaderMaterial({
-            fragmentShader: document.getElementById('c:/DEV/projects/3D-Shaders-experiment/octree test.glsl').textContent,
+            fragmentShader: document.getElementById('c:/Users/arthu/Desktop/3D-Shaders-experiment/octree test.glsl').textContent,
             depthWrite: false,
             depthTest: false,
             uniforms: {
