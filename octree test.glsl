@@ -1,9 +1,9 @@
 #define PI 3.14159265359
-#define MAXSD 99999.0
+#define MAXSD 200000.0
 #define voxside_x 1
 #define voxside_y 2
 #define voxside_z 3
-#define MAX_OCTDEPTH 1
+#define MAX_OCTDEPTH 6
 
 vec2 uv;
 vec3 camdir = vec3(0.0, 0.0, 0.0);
@@ -155,8 +155,12 @@ trace_recstat getSubVoxels(vec3 origin, vec3 size)
     s.subvoxels[3] = getvox(s.suborigin[3], hsize);
     s.subvoxels[4] = getvox(s.suborigin[4], hsize);
     s.subvoxels[5] = getvox(s.suborigin[5], hsize);
-    s.subvoxels[6] = getvox(s.suborigin[6], hsize);
-    s.subvoxels[7] = getvox(s.suborigin[7], hsize);
+    // s.subvoxels[6] = getvox(s.suborigin[6], hsize);
+    // s.subvoxels[7] = getvox(s.suborigin[7], hsize);
+
+    s.subvoxels[6].sd = MAXSD;
+    s.subvoxels[7].sd = MAXSD;
+
     s.subvoxels[0].col = vec3(0.0, 0.0, 0.0)+0.25;
     s.subvoxels[1].col = vec3(0.0, 0.0, 0.5)+0.25;
     s.subvoxels[2].col = vec3(0.0, 0.5, 0.0)+0.25;
@@ -166,7 +170,7 @@ trace_recstat getSubVoxels(vec3 origin, vec3 size)
     s.subvoxels[6].col = vec3(0.5, 0.5, 0.0)+0.25;
     s.subvoxels[7].col = vec3(0.5, 0.5, 0.5)+0.25;
 
-    // Sorting subvoxels
+    //Sorting subvoxels
     Surface tmp;
     vec3 vtmp;
     for(int i = 0; i < 4; i++) // We only want the 4 mins distances
@@ -203,53 +207,28 @@ Surface trace(vec3 origin, vec3 size, int depth)
     Surface voxel;
     voxel.sd = MAXSD;
 
-    for(i[depth] = 0; i[depth] < 4; i[depth]++)
+    for(i[depth] = 0; i[depth] < 8; i[depth]++)
     {
-        if(MAXSD > stack[depth].subvoxels[i[depth]].sd)
+        if(stack[depth].subvoxels[i[depth]].sd < voxel.sd)
         {
             if(depth == MAX_OCTDEPTH)
+            {
                 return stack[depth].subvoxels[i[depth]];
-
+            }
             else
             {
                 stack[depth+1] = getSubVoxels(stack[depth].suborigin[i[depth]], stack[depth].size);
                 depth++;
+                i[depth] = -1;
             }
         }
 
-        if(depth > 0 && i[depth] == 3)
+        if(depth > 0 && i[depth] == 7)
         {
-            i[depth] = 0;
+            //i[depth] = 0;
             depth--;
         }
     }
-
-
-    // if(depth == MAX_OCTDEPTH)
-    // {
-    //     for(int i = 0; i < 4; i++)
-    //     {
-    //         if(voxel.sd >= stack[depth].subvoxels[i].sd && stack[depth].subvoxels[i].sd < MAXSD)
-    //         {
-    //             voxel = stack[depth].subvoxels[i];
-    //             break;
-    //         }
-    //     }
-    // }
-    // else
-    // {
-    //     // Surface newvoxel = voxel;
-
-    //     // for(int i = 0; i < 4; i++)
-    //     // {
-    //     //     // newvoxel = trace(stack[depth].suborigin[i], hsize, depth+1);
-    //     //     // if(voxel.sd >= newvoxel.sd && newvoxel.sd < MAXSD)
-    //     //     // {
-    //     //     //     voxel = newvoxel;
-    //     //     //     break;
-    //     //     // }
-    //     // }
-    // }
 
     return voxel;
 }
@@ -266,7 +245,7 @@ void main()
     vec3 lp = vec3(0, 0, 0); // lookat point (aka camera target)
     vec3 ro = vec3(3, 10, 10); // ray origin that represents camera position
 
-    float cameraRadius = 700.0;
+    float cameraRadius = 7000.0;
     ro.yz = ro.yz * cameraRadius * rotate2d(mix(PI/2., 0., mouseUV.y));
     ro.xz = ro.xz * rotate2d(mix(-PI, PI, mouseUV.x)) + vec2(lp.x, lp.z);
 
@@ -277,7 +256,7 @@ void main()
     icamdir = 1.0/camdir;
 
     vec3 worldorigin = vec3(0.0);
-    vec3 worldsize = vec3(5000,5000,5000);
+    vec3 worldsize = vec3(50000);
     vec3 worldhsize = worldsize*0.50;
     vec3 worldqsize = worldsize*0.25;
 
