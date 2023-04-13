@@ -3,7 +3,7 @@
 #define voxside_x 1
 #define voxside_y 2
 #define voxside_z 3
-#define MAX_OCTDEPTH 2
+#define MAX_OCTDEPTH 5
 
 vec2 uv;
 vec3 camdir = vec3(0.0, 0.0, 0.0);
@@ -31,6 +31,7 @@ struct trace_recstat
 {
     Surface subvoxels[8];
     vec3 suborigin[8];
+    int nodes[8];
     vec3 size;
     int curNode;
 };
@@ -142,38 +143,109 @@ void getSubVoxels(int depth, vec3 origin, vec3 size)
 
     stack[depth].size = hsize;
 
+    OctNode node = World[stack[depth].curNode];
 
 
-    stack[depth].suborigin[0] = vec3(origin.x - qsize.x, origin.y - qsize.y, origin.z - qsize.z);
-    stack[depth].suborigin[1] = vec3(origin.x - qsize.x, origin.y - qsize.y, origin.z + qsize.z);
-    stack[depth].suborigin[2] = vec3(origin.x - qsize.x, origin.y + qsize.y, origin.z - qsize.z);
-    stack[depth].suborigin[3] = vec3(origin.x - qsize.x, origin.y + qsize.y, origin.z + qsize.z);
-    stack[depth].suborigin[4] = vec3(origin.x + qsize.x, origin.y - qsize.y, origin.z - qsize.z);
-    stack[depth].suborigin[5] = vec3(origin.x + qsize.x, origin.y - qsize.y, origin.z + qsize.z);
-    stack[depth].suborigin[6] = vec3(origin.x + qsize.x, origin.y + qsize.y, origin.z - qsize.z);
-    stack[depth].suborigin[7] = vec3(origin.x + qsize.x, origin.y + qsize.y, origin.z + qsize.z);
-    stack[depth].subvoxels[0] = getvox(stack[depth].suborigin[0], hsize);
-    stack[depth].subvoxels[1] = getvox(stack[depth].suborigin[1], hsize);
-    stack[depth].subvoxels[2] = getvox(stack[depth].suborigin[2], hsize);
-    stack[depth].subvoxels[3] = getvox(stack[depth].suborigin[3], hsize);
-    stack[depth].subvoxels[4] = getvox(stack[depth].suborigin[4], hsize);
-    stack[depth].subvoxels[5] = getvox(stack[depth].suborigin[5], hsize);
+    if(node.childs[0] != 0)
+    {
+        stack[depth].suborigin[0] = vec3(origin.x - qsize.x, origin.y - qsize.y, origin.z - qsize.z);
+        stack[depth].subvoxels[0] = getvox(stack[depth].suborigin[0], hsize);
+        //stack[depth].subvoxels[0].col = node.col;
+        stack[depth].nodes[0] = node.childs[0];
+    }
+    else
+        stack[depth].subvoxels[0].sd = MAXSD;
+
+    if(node.childs[1] != 1)
+    {
+        stack[depth].suborigin[1] = vec3(origin.x - qsize.x, origin.y - qsize.y, origin.z + qsize.z);
+        stack[depth].subvoxels[1] = getvox(stack[depth].suborigin[1], hsize);
+        stack[depth].nodes[1] = node.childs[1];
+    }
+    else
+        stack[depth].subvoxels[1].sd = MAXSD;
+
+    if(node.childs[2] != 2)
+    {
+        stack[depth].suborigin[2] = vec3(origin.x - qsize.x, origin.y + qsize.y, origin.z - qsize.z);
+        stack[depth].subvoxels[2] = getvox(stack[depth].suborigin[2], hsize);
+        stack[depth].nodes[2] = node.childs[2];
+    }
+    else
+        stack[depth].subvoxels[2].sd = MAXSD;
+
+    if(node.childs[3] != 3)
+    {
+        stack[depth].suborigin[3] = vec3(origin.x - qsize.x, origin.y + qsize.y, origin.z + qsize.z);
+        stack[depth].subvoxels[3] = getvox(stack[depth].suborigin[3], hsize);
+        stack[depth].nodes[3] = node.childs[3];
+    }
+    else
+        stack[depth].subvoxels[3].sd = MAXSD;
+
+    if(node.childs[4] != 4)
+    {
+        stack[depth].suborigin[4] = vec3(origin.x + qsize.x, origin.y - qsize.y, origin.z - qsize.z);
+        stack[depth].subvoxels[4] = getvox(stack[depth].suborigin[4], hsize);
+        stack[depth].nodes[4] = node.childs[4];
+    }
+    else
+        stack[depth].subvoxels[4].sd = MAXSD;
+
+    if(node.childs[5] != 0)
+    {
+        stack[depth].suborigin[5] = vec3(origin.x + qsize.x, origin.y - qsize.y, origin.z + qsize.z);
+        stack[depth].subvoxels[5] = getvox(stack[depth].suborigin[5], hsize);
+        stack[depth].nodes[5] = node.childs[5];
+    }
+    else
+        stack[depth].subvoxels[5].sd = MAXSD;
+
+    if(node.childs[6] != 0)
+    {
+        stack[depth].suborigin[6] = vec3(origin.x + qsize.x, origin.y + qsize.y, origin.z - qsize.z);
+        stack[depth].subvoxels[6] = getvox(stack[depth].suborigin[6], hsize);
+        stack[depth].nodes[6] = node.childs[6];
+    }
+    else
+        stack[depth].subvoxels[6].sd = MAXSD;
+
+    if(node.childs[7] != 0)
+    {
+        stack[depth].suborigin[7] = vec3(origin.x + qsize.x, origin.y + qsize.y, origin.z + qsize.z);
+        stack[depth].subvoxels[7] = getvox(stack[depth].suborigin[7], hsize);
+        stack[depth].nodes[7] = node.childs[7];
+    }
+    else
+        stack[depth].subvoxels[7].sd = MAXSD;
+
+    // stack[depth].suborigin[1] = vec3(origin.x - qsize.x, origin.y - qsize.y, origin.z + qsize.z);
+    // stack[depth].suborigin[2] = vec3(origin.x - qsize.x, origin.y + qsize.y, origin.z - qsize.z);
+    // stack[depth].suborigin[3] = vec3(origin.x - qsize.x, origin.y + qsize.y, origin.z + qsize.z);
+    // stack[depth].suborigin[4] = vec3(origin.x + qsize.x, origin.y - qsize.y, origin.z - qsize.z);
+    // stack[depth].suborigin[5] = vec3(origin.x + qsize.x, origin.y - qsize.y, origin.z + qsize.z);
+    // stack[depth].suborigin[6] = vec3(origin.x + qsize.x, origin.y + qsize.y, origin.z - qsize.z);
+    // stack[depth].suborigin[7] = vec3(origin.x + qsize.x, origin.y + qsize.y, origin.z + qsize.z);
+    // stack[depth].subvoxels[0] = getvox(stack[depth].suborigin[0], hsize);
+    // stack[depth].subvoxels[1] = getvox(stack[depth].suborigin[1], hsize);
+    // stack[depth].subvoxels[2] = getvox(stack[depth].suborigin[2], hsize);
+    // stack[depth].subvoxels[3] = getvox(stack[depth].suborigin[3], hsize);
+    // stack[depth].subvoxels[4] = getvox(stack[depth].suborigin[4], hsize);
+    // stack[depth].subvoxels[5] = getvox(stack[depth].suborigin[5], hsize);
     // stack[depth].subvoxels[6] = getvox(stack[depth].suborigin[6], hsize);
     // stack[depth].subvoxels[7] = getvox(stack[depth].suborigin[7], hsize);
-    stack[depth].subvoxels[6].sd = MAXSD;
-    stack[depth].subvoxels[7].sd = MAXSD;
 
-    stack[depth].subvoxels[0].col = vec3(0.0, 0.0, 0.0)+0.25;
-    stack[depth].subvoxels[1].col = vec3(0.0, 0.0, 0.5)+0.25;
-    stack[depth].subvoxels[2].col = vec3(0.0, 0.5, 0.0)+0.25;
-    stack[depth].subvoxels[3].col = vec3(0.0, 0.5, 0.5)+0.25;
-    stack[depth].subvoxels[4].col = vec3(0.5, 0.0, 0.0)+0.25;
-    stack[depth].subvoxels[5].col = vec3(0.5, 0.0, 0.5)+0.25;
-    stack[depth].subvoxels[6].col = vec3(0.5, 0.5, 0.0)+0.25;
-    stack[depth].subvoxels[7].col = vec3(0.5, 0.5, 0.5)+0.25;
+    // stack[depth].subvoxels[1].col = vec3(0.0, 0.0, 0.5)+0.25;
+    // stack[depth].subvoxels[2].col = vec3(0.0, 0.5, 0.0)+0.25;
+    // stack[depth].subvoxels[3].col = vec3(0.0, 0.5, 0.5)+0.25;
+    // stack[depth].subvoxels[4].col = vec3(0.5, 0.0, 0.0)+0.25;
+    // stack[depth].subvoxels[5].col = vec3(0.5, 0.0, 0.5)+0.25;
+    // stack[depth].subvoxels[6].col = vec3(0.5, 0.5, 0.0)+0.25;
+    // stack[depth].subvoxels[7].col = vec3(0.5, 0.5, 0.5)+0.25;
 
     //Sorting subvoxels
-    Surface tmp;
+    int tmp;
+    Surface stmp;
     vec3 vtmp;
     for(int i = 0; i < 4; i++) // We only want the 4 mins distances
     {
@@ -183,10 +255,14 @@ void getSubVoxels(int depth, vec3 origin, vec3 size)
         {
             if(minsd > stack[depth].subvoxels[j].sd)
             {
-                tmp = stack[depth].subvoxels[i];
+                stmp = stack[depth].subvoxels[i];
                 stack[depth].subvoxels[i] = stack[depth].subvoxels[j];
-                stack[depth].subvoxels[j] = tmp;
+                stack[depth].subvoxels[j] = stmp;
                 minsd = stack[depth].subvoxels[i].sd;
+
+                tmp = stack[depth].nodes[i];
+                stack[depth].nodes[i] = stack[depth].nodes[j];
+                stack[depth].nodes[j] = tmp;
 
                 vtmp = stack[depth].suborigin[i];
                 stack[depth].suborigin[i] = stack[depth].suborigin[j];
@@ -206,16 +282,21 @@ Surface trace(vec3 origin, vec3 size, int depth)
     Surface voxel;
     voxel.sd = MAXSD;
 
+     stack[depth].curNode = 0;
+
     for(i[depth] = 0; i[depth] < 8; i[depth]++)
     {
         if(stack[depth].subvoxels[i[depth]].sd < voxel.sd)
         {
-            if(depth == MAX_OCTDEPTH)
+            if(depth == MAX_OCTDEPTH || World[stack[depth].nodes[i[depth]]].is_leaf)
             {
+                stack[depth].subvoxels[i[depth]].col = World[stack[depth].nodes[i[depth]]].col;
                 return stack[depth].subvoxels[i[depth]];
+                // return stack[depth].nodes[i[depth]];
             }
             else
             {
+                stack[depth+1].curNode = stack[depth].nodes[i[depth]];
                 getSubVoxels(depth+1, stack[depth].suborigin[i[depth]], stack[depth].size);
                 depth++;
                 i[depth] = -1;
@@ -224,7 +305,7 @@ Surface trace(vec3 origin, vec3 size, int depth)
 
         if(depth > 0 && i[depth] == 7)
         {
-            //i[depth] = 0;
+            // i[depth] = -1;
             depth--;
         }
     }
@@ -237,18 +318,72 @@ void test_generateWorld()
     World[0].is_leaf = false;
     World[0].col = vec3(1.0);
     
-    for(int i = 0; i < 8; i++)
+    for(int i = 0; i < 6; i++)
     {
-        World[0].childs[i] = i;
-        World[i].is_leaf = true;
-        World[i].col = vec3(1.0)/float(i);
-        World[i].parent = 0;
+        World[0].childs[i] = i+1;
+        World[i+1].is_leaf = true;
+        World[i+1].col = 0.15+vec3(0.75, 0.1, 0.5)/float(i+1);
+        World[i+1].parent = 0;
+
     }
+
+    // for(int i = 0; i < 8; i++)
+    //     for(int j = 0; j < 8; j++)
+    //         World[i+1].childs[j] = 0;
+
+    World[3].is_leaf = false;
+
+    for(int i = 0; i < 7; i++)
+    {
+        World[3].childs[i] = i+8;
+        World[i+8].is_leaf = true;
+        World[i+8].col = 0.15+vec3(0.1, 0.75, 0.5)/float(i+1);
+        World[i+8].parent = 3;
+
+        // for(int j = 0; j < 8; j++)
+        //     World[i+8].childs[j] = 0;
+    } 
+
+    World[14].is_leaf = false;
+    for(int i = 0; i < 7; i++)
+    {
+        World[14].childs[i] = i+16;
+        World[i+16].is_leaf = true;
+        World[i+16].col = 0.25+vec3(1.0, 1.0, 0.25)/float(i+1);
+        World[i+16].parent = 3;
+
+        // for(int j = 0; j < 8; j++)
+        //     World[i+16].childs[j] = 0;
+    }   
+
+    World[22].is_leaf = false;
+    for(int i = 0; i < 7; i++)
+    {
+        World[22].childs[i] = i+23;
+        World[i+23].is_leaf = true;
+        World[i+23].col = 0.25+vec3(0.25, 0.1, 1.0)/float(i+1);
+        World[i+23].parent = 3;
+
+        // for(int j = 0; j < 8; j++)
+        //     World[i+25].childs[j] = 0;
+    } 
+
+    World[29].is_leaf = false;
+    for(int i = 0; i < 7; i++)
+    {
+        World[29].childs[i] = i+30;
+        World[i+30].is_leaf = true;
+        World[i+30].col = 0.25+vec3(0.0, 0.25, 1.25)/float(i+1);
+        World[i+30].parent = 3;
+
+        // for(int j = 0; j < 8; j++)
+        //     World[i+25].childs[j] = 0;
+    } 
 }
 
 void main()
 {
-    // test_generateWorld();
+    test_generateWorld();
     uv = (gl_FragCoord.xy-iResolution.xy*0.5)/iResolution.xx;
     vec2 mouseUV = iMouse.xy/iResolution.xy; // Range: <0, 1>
     mouseUV.x += iTime*0.01;
