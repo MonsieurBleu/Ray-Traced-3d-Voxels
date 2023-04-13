@@ -430,8 +430,8 @@ void main()
         }
 
     }
-    else
-        gl_FragColor.rgb = backgroundColor;
+    else discard;
+        //gl_FragColor.rgb = backgroundColor;
 
     gl_FragColor.a = 1.0;
 }
