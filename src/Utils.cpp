@@ -22,7 +22,14 @@ std::string readFile(const char *filePath) // Mights just use a C approach inste
 }
 
 
-std::string getFileExtension(const char *filePath)
+std::string getFileExtension(std::string &fileName)
 {
+
+    auto i = fileName.rbegin();
+    while(i != fileName.rend())
+    {
+        if(*i == '.') break;
+    }
+
     
 };
