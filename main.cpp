@@ -46,10 +46,8 @@ int main()
     glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
 
     /* OTHER STUFF GOES HERE NEXT */
-    int tmp;
-    std::cin >> tmp;
 
-    App RTVoxl;
+    App RTVoxl(window);
     RTVoxl.mainloop();
 
     // close GL context and any other GLFW resources

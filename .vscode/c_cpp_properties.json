@@ -3,7 +3,9 @@
         {
             "name": "Win32",
             "includePath": [
-                "${workspaceFolder}/**",
+                "${default}",
+                "${workspaceFolder}/include",
+                "${workspaceFolder}",
                 "${workspaceFolder}/include"
             ],
             "defines": [
@@ -11,11 +13,11 @@
                 "UNICODE",
                 "_UNICODE"
             ],
-            "compilerPath": "C:\\DEV\\mingw64\\bin\\gcc.exe",
-            "cStandard": "c17",
+            "cStandard": "gnu17",
             "cppStandard": "gnu++17",
             "intelliSenseMode": "windows-gcc-x64",
-            "configurationProvider": "ms-vscode.makefile-tools"
+            "configurationProvider": "ms-vscode.cpptools",
+            "compilerPath": "C:/DEV/mingw64/bin/g++.exe"
         }
     ],
     "version": 4

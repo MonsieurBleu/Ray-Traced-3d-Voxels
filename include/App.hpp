@@ -14,11 +14,13 @@ class App
 {
     private :
         AppState state = run;
+        GLFWwindow* window;
+
 
         void mainInput();
 
     public :
-
+        App(GLFWwindow* window);
         void mainloop();
 
 };
