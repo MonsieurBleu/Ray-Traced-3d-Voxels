@@ -15,7 +15,7 @@ void App::mainInput()
 
 
 void App::mainloop()
-{
+{   
     while(state != quit)
     {
         mainInput();
