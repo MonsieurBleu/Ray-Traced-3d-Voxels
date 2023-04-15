@@ -27,14 +27,39 @@ class Shader
     public :
         Shader(){};
 
-        // Load the shader from the file at the given path
-        // .vert for vertex shaders
-        // .geom for geometry shaders
-        // .frag for fragment shaders
-        ShaderError load_from_file(const std::string& Path);
+        // Prepare the shader for loading from the file at the given path
+        //    .vert for vertex shaders
+        //    .geom for geometry shaders
+        //    .frag for fragment shaders
+        // You then can load the shader using the refresh() method
+        // This method is only needed to be called once
+        void prepare_loading(const std::string& Path);
+        ShaderError refresh();
 
         GLuint get_shader(){return shader;};
+        const std::string &get_Path(){return Path;};
 };
 
+class ShaderProgram
+{
+    private :
+
+        GLuint program;
+
+        Shader vert;
+        Shader frag;
+        Shader geom;
+
+    public :
+
+        ShaderProgram(const std::string _fragPath, 
+                      const std::string _vertPath = "", 
+                      const std::string _geomPath = "");
+
+        ShaderError CompileAndLink();
+
+        void activate();
+        void deactivate();
+};
 
 #endif

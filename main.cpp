@@ -8,6 +8,8 @@
 
 int main()
 {
+    atexit(checkHeap);
+
     system("cls");
     std::cout << "#### RAY TRACED VOXELS ####\n";
 
@@ -42,7 +44,7 @@ int main()
     std::cout << TERMINAL_INFO 
     << "Renderer: " << renderer << "\n" 
     << "OpenGL version supported " << version << "\n"
-    << TERMINAL_RESET;
+    << TERMINAL_RESET << "\n";
 
     // tell GL to only draw onto a pixel if the shape is closer to the viewer
     glEnable(GL_DEPTH_TEST); // enable depth-testing
