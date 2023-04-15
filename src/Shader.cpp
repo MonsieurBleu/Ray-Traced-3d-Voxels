@@ -147,3 +147,13 @@ ShaderError ShaderProgram::CompileAndLink()
 
     return ShaderOk;
 }
+
+void ShaderProgram::activate()
+{
+    glUseProgram(program);
+}
+
+void ShaderProgram::deactivate()
+{
+    glUseProgram(program);
+}

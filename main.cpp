@@ -26,7 +26,7 @@ int main()
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);*/
 
-    GLFWwindow* window = glfwCreateWindow(640, 480, "Hello Triangle", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(1920, 1080, "RT Voxels", NULL, NULL);
     if (!window) {
     std::cerr << "ERROR: could not open window with GLFW3\n";
     glfwTerminate();
@@ -47,8 +47,8 @@ int main()
     << TERMINAL_RESET << "\n";
 
     // tell GL to only draw onto a pixel if the shape is closer to the viewer
-    glEnable(GL_DEPTH_TEST); // enable depth-testing
-    glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
+    // glEnable(GL_DEPTH_TEST); // enable depth-testing
+    // glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
 
     /* OTHER STUFF GOES HERE NEXT */
 
