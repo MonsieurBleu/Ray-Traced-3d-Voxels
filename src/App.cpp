@@ -1,4 +1,5 @@
 #include <App.hpp>
+#include <Utils.hpp>
 
 //https://antongerdelan.net/opengl/hellotriangle.html
 
@@ -16,6 +17,10 @@ void App::mainInput()
 
 void App::mainloop()
 {   
+    Shader test;
+    test.load_from_file("shader/test.frag");
+    test.load_from_file("shader/test.vert");
+
     while(state != quit)
     {
         mainInput();

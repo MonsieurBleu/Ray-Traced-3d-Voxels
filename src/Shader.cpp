@@ -66,3 +66,53 @@ GLuint LoadShader(const char *vertex_path, const char *fragment_path)
 
     return program;
 }
+
+
+ShaderError Shader::load_from_file(const std::string& path)
+{
+    Path = path;
+
+    std::string extension = getFileExtension(Path);
+
+    if(extension == "frag")
+        type = GL_FRAGMENT_SHADER;
+    else if(extension == "vert")
+        type = GL_VERTEX_SHADER;
+    else if(extension == "geom")
+        type = GL_GEOMETRY_SHADER;
+    
+    shader = glCreateShader(type);
+
+    std::string code = readFile(path);
+
+    if(code.empty())
+        return ShaderNoFile;
+    
+    const char *glcode = code.c_str();
+    glShaderSource(shader, 1, &glcode, NULL);
+    glCompileShader(shader);
+
+    // Checking shader
+
+    GLint result = GL_FALSE;
+    int logLength;
+
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &result);
+    glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLength);
+
+    if(logLength > 0)
+    {
+        GLchar ShaderError[logLength];
+        glGetShaderInfoLog(shader, logLength, NULL, ShaderError);
+        std::cerr << TERMINAL_ERROR << "Error compiling shader " << Path << " :\n";
+        std::cerr << ShaderError << std::endl << TERMINAL_RESET;
+
+        return ShaderCompileError;
+    }
+
+    std::cout << TERMINAL_OK 
+    << "Shader " << path << " compiled successfuly.\n"
+    << TERMINAL_RESET;
+
+    return ShaderOk;
+}

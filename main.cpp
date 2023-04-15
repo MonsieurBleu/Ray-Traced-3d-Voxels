@@ -4,6 +4,7 @@
 // #include <GLFW/glfw3.h>
 
 #include <App.hpp>
+#include <Utils.hpp>
 
 int main()
 {
@@ -38,8 +39,10 @@ int main()
     // get version info
     const GLubyte* renderer = glGetString(GL_RENDERER); // get renderer string
     const GLubyte* version = glGetString(GL_VERSION); // version as a string
-    std::cout << "Renderer: " << renderer << "\n";
-    std::cout << "OpenGL version supported " << version << "\n";
+    std::cout << TERMINAL_INFO 
+    << "Renderer: " << renderer << "\n" 
+    << "OpenGL version supported " << version << "\n"
+    << TERMINAL_RESET;
 
     // tell GL to only draw onto a pixel if the shape is closer to the viewer
     glEnable(GL_DEPTH_TEST); // enable depth-testing
