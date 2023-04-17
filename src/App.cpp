@@ -18,10 +18,11 @@ void App::mainInput()
 void App::mainloop()
 {   
     float points[] = {
-    1.0f,  -1.0f,  0.0f,
+    -1.0f,  1.0f,  0.0f,
     1.0f, 1.0f,  0.0f,
     -1.0f, -1.0f,  0.0f,
-    -1.0f,  1.0f,  0.0f,
+    
+    1.0f,  -1.0f,  0.0f,
     1.0f, 1.0f,  0.0f,
     -1.0f, -1.0f,  0.0f,
     };
@@ -54,9 +55,9 @@ void App::mainloop()
         test.activate();
         glBindVertexArray(vao);
         // draw points 0-3 from the currently bound VAO with current in-use shader
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
 
-        
+        glUniform1ui(glGetUniformLocation(test.get_program(), "time"), Get_time_ms());
 
         glfwPollEvents();
         glfwSwapBuffers(window);

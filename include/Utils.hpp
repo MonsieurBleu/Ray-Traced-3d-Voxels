@@ -25,7 +25,7 @@ typedef std::chrono::duration<float, std::milli> duration;
 
 void startbenchrono();
 void endbenchrono();
-
+uint64_t Get_time_ms();
 
 /// HEAP CORRUPTION
 void checkHeap();

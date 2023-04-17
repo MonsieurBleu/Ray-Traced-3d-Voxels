@@ -60,6 +60,8 @@ class ShaderProgram
 
         void activate();
         void deactivate();
+
+        GLuint get_program() {return program;};
 };
 
 #endif
