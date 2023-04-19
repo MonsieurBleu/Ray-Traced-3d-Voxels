@@ -120,11 +120,12 @@ ShaderError ShaderProgram::CompileAndLink()
     glGetProgramiv(program, GL_LINK_STATUS, &result);
     glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLength);
 
+    // if(logLength > 0 && result != GL_TRUE)
     if(logLength > 0)
     {
         char programError[logLength];
         glGetProgramInfoLog(program, logLength, NULL, programError);
-        std::cerr << TERMINAL_ERROR << "Error compiling shaders " << vert.get_Path() << " " << vert.get_Path() << " " << geom.get_Path() << " :\n";
+        std::cerr << TERMINAL_ERROR << "Error compiling shaders " << frag.get_Path() << " " << vert.get_Path() << " " << geom.get_Path() << " :\n";
         std::cerr << programError << std::endl << TERMINAL_RESET;
 
         return ShaderLinkingError;
@@ -134,7 +135,7 @@ ShaderError ShaderProgram::CompileAndLink()
     << TERMINAL_OK 
     << "Shader Program " 
     << TERMINAL_FILENAME
-    << vert.get_Path() 
+    << frag.get_Path() 
     << (vert.get_Path().empty() ? "" : " "+vert.get_Path())
     << (geom.get_Path().empty() ? "" : " "+geom.get_Path())
     << TERMINAL_OK 

@@ -1,12 +1,21 @@
-#version 430
+#version 460
 
 layout (location = 0) uniform ivec2 iResolution;
 layout (location = 1) uniform float iTime;
 
-layout (std430, binding=2) buffer shader_data
+struct OctNode
 {
-    int test[0xFFFFFF];
+    uint col;
+    int  childs[8];
+    int  parent;
 };
+
+#define OCTREE_CHUNK_SIZE 0xFFFF
+layout (std430, binding=2) readonly restrict buffer shader_data
+{
+    OctNode World[OCTREE_CHUNK_SIZE];
+};
+// OctNode World[32];
 
 out vec4 frag_color;
 
@@ -31,14 +40,6 @@ struct Surface
     int side;
 };
 
-struct OctNode
-{
-    uint col;
-    int  childs[8];
-    int  parent;
-};
-
-OctNode World[32];
 
 struct trace_recstat
 {
@@ -301,17 +302,21 @@ Surface trace(vec3 origin, vec3 size, int depth)
     {
         if(stack[depth].subvoxels[i[depth]].sd < voxel.sd)
         {
-            //OctNode node = World[stack[depth].nodes[i[depth]]];
             uint col = uint(stack[depth].nodes[i[depth]]);
 
             // if(depth == MAX_OCTDEPTH || node.is_leaf)
-            if(depth == MAX_OCTDEPTH || col >= LEAF_LIMIT)
+            if(col >= LEAF_LIMIT)
             {
-                // stack[depth].subvoxels[i[depth]].col = node.col;
                 stack[depth].subvoxels[i[depth]].col = col;
                 return stack[depth].subvoxels[i[depth]];
-                // return stack[depth].nodes[i[depth]];
             }
+
+            else if(depth == MAX_OCTDEPTH)
+            {   
+                stack[depth].subvoxels[i[depth]].col = stack[depth].node.col;
+                return stack[depth].subvoxels[i[depth]];
+            }
+            
             else
             {
                 stack[depth+1].curNode = stack[depth].nodes[i[depth]];
@@ -331,69 +336,8 @@ Surface trace(vec3 origin, vec3 size, int depth)
     return voxel;
 }
 
-void test_generateWorld()
-{
-    // World[0].is_leaf = false;
-    World[0].col = uint(0);
-    
-    for(int i = 0; i < 6; i++)
-    {
-        World[0].childs[i] = int(0xc7218b + int(LEAF_LIMIT));
-        // World[0].childs[i] = i+1;
-        // World[i+1].is_leaf = true;
-        // World[i+1].col = uint(0xc7218b);
-        // World[i+1].parent = 0;
-    }
-
-    World[0].childs[3] = 3;
-    // World[3].is_leaf = false;
-
-    for(int i = 0; i < 7; i++)
-    {
-        World[3].childs[i] = int(0xa569bd + int(LEAF_LIMIT));
-        // World[3].childs[i] = i+8;
-        // World[i+8].is_leaf = true;
-        // World[i+8].col = uint(0xa569bd);
-        // World[i+8].parent = 3;
-    } 
-
-    World[3].childs[5] = 14;
-    // World[14].is_leaf = false;
-    for(int i = 0; i < 7; i++)
-    {
-        World[14].childs[i] = int(0xe74c3c + int(LEAF_LIMIT));
-        // World[14].childs[i] = i+16;
-        // World[i+16].is_leaf = true;
-        // World[i+16].col = uint(0xe74c3c);
-        // World[i+16].parent = 3;
-    }   
-
-    World[14].childs[5] = 22;
-    // World[22].is_leaf = false;
-    for(int i = 0; i < 7; i++)
-    {
-        World[22].childs[i] = int(0x2ecc71 + int(LEAF_LIMIT));
-        // World[22].childs[i] = i+23;
-        // World[i+23].is_leaf = true;
-        // World[i+23].col = uint(0x2ecc71);
-        // World[i+23].parent = 3;
-    } 
-
-    World[12].childs[5] = 29;
-    // World[29].is_leaf = false;
-    for(int i = 0; i < 7; i++)
-    {
-        World[29].childs[i] = int(0xFFC300 + int(LEAF_LIMIT));
-        // World[29].childs[i] = i+30;
-        // World[i+30].is_leaf = true;
-        // World[i+30].col = uint(0xFFC300);
-        // World[i+30].parent = 3;
-    } 
-}
-
 void main()
 {
-    test_generateWorld();
     uv = (gl_FragCoord.xy-iResolution.xy*0.5)/iResolution.xx;
     // vec2 mouseUV = iMouse.xy/iResolution.xy; // Range: <0, 1>
     vec2 mouseUV = vec2(0.5, 0.75);
@@ -447,8 +391,8 @@ void main()
         //frag_color.rgb = backgroundColor;
 
     // for(int i = 0; i < 16; i++)
-    if(test[0xFFFFFF-1] != 69)
-        discard;
+    // if(test[0xFF-1].parent != 69)
+    //     discard;
 
     frag_color.a = 1.0;
 }

@@ -1,5 +1,8 @@
 #include <App.hpp>
 #include <Utils.hpp>
+#include <Octree.hpp>
+#include <string.h> // for memset
+
 
 //https://antongerdelan.net/opengl/hellotriangle.html
 
@@ -58,24 +61,68 @@ void App::mainloop()
 
 
     /// CREATING AN SSBO
-    int *shader_data = new int[0xFFFFFF];
-    // int shader_data[0xFFFFFF] = {50};
-    for(int i = 0; i < 16; i++)
-        shader_data[i] = 50;
-    
-    shader_data[0xFFFFFF -1] = 69;
+    OctNode *World = new OctNode[OCTREE_CHUNK_SIZE];
+    memset(World, 0, OCTREE_CHUNK_SIZEB);
+
+    World[1].lod_surface.color = {0xc7, 0x21, 0x8b};
+    World[1].lod_surface.info  = 0;
+    World[0].lod_surface.color = {0xc7, 0x21, 0x8b};
+    World[0].lod_surface.info  = 0;
+    for(int i = 0; i < 6; i++)
+    {   
+        World[0].childs[i].ptr.pos = 1;
+        World[0].childs[i].ptr.oct_chunk_pos = 0;
+
+        World[1].childs[i].ptr.pos = 1;
+        World[1].childs[i].ptr.oct_chunk_pos = 0;
+    }
+
+
+    // for(int i = 0; i < 6; i++)
+    // {   
+    //     World[0].childs[i].surface.color = {0xc7, 0x21, 0x8b};
+    //     World[0].childs[i].surface.info  = LEAF_LIMIT8;
+    // }
+
+    // World[0].childs[3].ptr.pos = 1;
+    // World[0].childs[3].ptr.oct_chunk_pos = 0;
+    // for(int i = 0; i < 7; i++)
+    // {   
+    //     World[1].childs[i].surface.color = {0xc5, 0x69, 0xbd};
+    //     World[1].childs[i].surface.info  = LEAF_LIMIT8;
+    // }
+
+    // World[1].childs[3].ptr.pos = 2;
+    // World[1].childs[3].ptr.oct_chunk_pos = 0;
+    // for(int i = 0; i < 7; i++)
+    // {   
+    //     World[2].childs[i].surface.color = {0x2e, 0xcc, 0x71};
+    //     World[2].childs[i].surface.info  = LEAF_LIMIT8;
+    // }
+
+    // World[2].childs[3].ptr.pos = 3;
+    // World[2].childs[3].ptr.oct_chunk_pos = 0;
+    // for(int i = 0; i < 7; i++)
+    // {   
+    //     World[3].childs[i].surface.color = {0xff, 0xc3, 0x00};
+    //     World[3].childs[i].surface.info  = LEAF_LIMIT8;
+    // }
+
+    // World[3].childs[3].ptr.pos = 4;
+    // World[3].childs[3].ptr.oct_chunk_pos = 0;
+    // for(int i = 0; i < 7; i++)
+    // {   
+    //     World[4].childs[i].surface.color = {0xe7, 0x4c, 0x3c};
+    //     World[4].childs[i].surface.info  = LEAF_LIMIT8;
+    // }
 
     GLuint ssbo = 0;
     glGenBuffers(1, &ssbo);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(int)*0xFFFFFF, shader_data, GL_DYNAMIC_COPY);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, OCTREE_CHUNK_SIZEB, World, GL_DYNAMIC_COPY);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, ssbo);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
-    // glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
-    // GLvoid* p = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_WRITE_ONLY);
-    // memcpy(p, &shader_data, sizeof(shader_data))
-    // glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 
     // GLuint block_index = 0;
     // block_index = glGetProgramResourceIndex(test.get_program(), GL_SHADER_STORAGE_BLOCK, "shader_data");
@@ -102,5 +149,5 @@ void App::mainloop()
         glfwSwapBuffers(window);
     }
 
-    delete shader_data;
+    delete World;
 }
