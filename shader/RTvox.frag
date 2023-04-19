@@ -48,7 +48,7 @@ struct trace_recstat
     int nodes[8];
     vec3 size;
     int curNode;
-    OctNode node;
+    // OctNode node;
 };
 
 trace_recstat stack[MAX_OCTDEPTH+1];
@@ -159,7 +159,7 @@ void getSubVoxels(int depth, vec3 origin, vec3 size)
     stack[depth].size = hsize;
 
     OctNode node = World[stack[depth].curNode];
-    stack[depth].node = node;
+    // stack[depth].node = node;
 
     if(node.childs[0] != 0)
     {
@@ -300,23 +300,24 @@ Surface trace(vec3 origin, vec3 size, int depth)
 
     for(i[depth] = 0; i[depth] < 8; i[depth]++)
     {
-        if(stack[depth].subvoxels[i[depth]].sd < voxel.sd)
+        Surface csvoxel = stack[depth].subvoxels[i[depth]];
+        if(csvoxel.sd < voxel.sd)
         {
+            if(depth == MAX_OCTDEPTH)
+            {   
+                csvoxel.col = World[stack[depth].curNode].col;
+                return csvoxel;
+            }
+
             uint col = uint(stack[depth].nodes[i[depth]]);
 
             // if(depth == MAX_OCTDEPTH || node.is_leaf)
             if(col >= LEAF_LIMIT)
             {
-                stack[depth].subvoxels[i[depth]].col = col;
-                return stack[depth].subvoxels[i[depth]];
+                csvoxel.col = col;
+                return csvoxel;
             }
 
-            else if(depth == MAX_OCTDEPTH)
-            {   
-                stack[depth].subvoxels[i[depth]].col = stack[depth].node.col;
-                return stack[depth].subvoxels[i[depth]];
-            }
-            
             else
             {
                 stack[depth+1].curNode = stack[depth].nodes[i[depth]];

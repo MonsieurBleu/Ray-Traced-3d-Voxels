@@ -3,7 +3,7 @@
 #define voxside_x 1
 #define voxside_y 2
 #define voxside_z 3
-#define MAX_OCTDEPTH 7
+#define MAX_OCTDEPTH 3
 
 vec2 uv;
 vec3 camdir = vec3(0.0, 0.0, 0.0);
