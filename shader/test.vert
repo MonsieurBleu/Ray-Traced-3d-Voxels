@@ -1,5 +1,8 @@
 #version 460
 
+layout (location = 0) uniform ivec2 iResolution;
+layout (location = 1) uniform float iTime;
+
 in vec3 vp;
 
 void main()

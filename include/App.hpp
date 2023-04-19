@@ -15,7 +15,7 @@ class App
     private :
         AppState state = run;
         GLFWwindow* window;
-
+        uint64_t timestart;
 
         void mainInput();
 
