@@ -336,12 +336,24 @@ Surface trace(vec3 origin, vec3 size, int depth)
     return voxel;
 }
 
+// void test()
+// {
+//     World[1].col = 0x21c78b;
+//     World[0].col= 0x21c78b;
+//     for(int i = 0; i < 6; i++)
+//     {   
+//         World[0].childs[i] = 1;
+//         World[1].childs[i] = 1;
+//     }
+// }
+
 void main()
 {
+    // test();
     uv = (gl_FragCoord.xy-iResolution.xy*0.5)/iResolution.xx;
     // vec2 mouseUV = iMouse.xy/iResolution.xy; // Range: <0, 1>
     vec2 mouseUV = vec2(0.5, 0.75);
-    mouseUV.x += iTime*0.01;
+    // mouseUV.x += iTime*0.01;
     vec3 backgroundColor = vec3(101.f, 194.f, 245.f)/256.f;
 
     vec3 col = vec3(0);

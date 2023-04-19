@@ -64,6 +64,7 @@ void App::mainloop()
     OctNode *World = new OctNode[OCTREE_CHUNK_SIZE];
     memset(World, 0, OCTREE_CHUNK_SIZEB);
 
+    // // Generating a cool looking fractal with minimal memory cost
     World[1].lod_surface.color = {0xc7, 0x21, 0x8b};
     World[1].lod_surface.info  = 0;
     World[0].lod_surface.color = {0xc7, 0x21, 0x8b};
@@ -77,7 +78,7 @@ void App::mainloop()
         World[1].childs[i].ptr.oct_chunk_pos = 0;
     }
 
-
+    // // Generating depth test
     // for(int i = 0; i < 6; i++)
     // {   
     //     World[0].childs[i].surface.color = {0xc7, 0x21, 0x8b};
