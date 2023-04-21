@@ -128,7 +128,8 @@ ShaderError ShaderProgram::CompileAndLink()
         std::cerr << TERMINAL_ERROR << "Error compiling shaders " << frag.get_Path() << " " << vert.get_Path() << " " << geom.get_Path() << " :\n";
         std::cerr << programError << std::endl << TERMINAL_RESET;
 
-        return ShaderLinkingError;
+        if(result != GL_TRUE)
+            return ShaderLinkingError;
     }
 
     std::cout 

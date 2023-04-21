@@ -3,7 +3,7 @@
 #define voxside_x 1
 #define voxside_y 2
 #define voxside_z 3
-#define MAX_OCTDEPTH 3
+#define MAX_OCTDEPTH 8
 
 vec2 uv;
 vec3 camdir = vec3(0.0, 0.0, 0.0);
@@ -158,9 +158,9 @@ void getSubVoxels(int depth, vec3 origin, vec3 size)
     stack[depth].subvoxels[3] = getvox(stack[depth].suborigin[3], hsize);
     stack[depth].subvoxels[4] = getvox(stack[depth].suborigin[4], hsize);
     stack[depth].subvoxels[5] = getvox(stack[depth].suborigin[5], hsize);
-    stack[depth].subvoxels[6] = getvox(stack[depth].suborigin[6], hsize);
+    // stack[depth].subvoxels[6] = getvox(stack[depth].suborigin[6], hsize);
     // stack[depth].subvoxels[7] = getvox(stack[depth].suborigin[7], hsize);
-    // stack[depth].subvoxels[6].sd = MAXSD;
+    stack[depth].subvoxels[6].sd = MAXSD;
     stack[depth].subvoxels[7].sd = MAXSD;
 
     stack[depth].subvoxels[0].col = vec3(0.0, 0.0, 0.0)+0.25;

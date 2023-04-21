@@ -3,7 +3,7 @@
 #define voxside_x 1
 #define voxside_y 2
 #define voxside_z 3
-#define MAX_OCTDEPTH 5
+#define MAX_OCTDEPTH 8
 
 const uint LEAF_LIMIT = uint(0x80000000);
 
@@ -321,62 +321,13 @@ Surface trace(vec3 origin, vec3 size, int depth)
 
 void test_generateWorld()
 {
-    // World[0].is_leaf = false;
-    World[0].col = uint(0);
-    
+    World[1].col = uint(0x21c78b);
+    World[0].col = uint(0x21c78b);
     for(int i = 0; i < 6; i++)
-    {
-        World[0].childs[i] = int(0xc7218b + int(LEAF_LIMIT));
-        // World[0].childs[i] = i+1;
-        // World[i+1].is_leaf = true;
-        // World[i+1].col = uint(0xc7218b);
-        // World[i+1].parent = 0;
+    {   
+        World[0].childs[i] = 1;
+        World[1].childs[i] = 1;
     }
-
-    World[0].childs[3] = 3;
-    // World[3].is_leaf = false;
-
-    for(int i = 0; i < 7; i++)
-    {
-        World[3].childs[i] = int(0xa569bd + int(LEAF_LIMIT));
-        // World[3].childs[i] = i+8;
-        // World[i+8].is_leaf = true;
-        // World[i+8].col = uint(0xa569bd);
-        // World[i+8].parent = 3;
-    } 
-
-    World[3].childs[5] = 14;
-    // World[14].is_leaf = false;
-    for(int i = 0; i < 7; i++)
-    {
-        World[14].childs[i] = int(0xe74c3c + int(LEAF_LIMIT));
-        // World[14].childs[i] = i+16;
-        // World[i+16].is_leaf = true;
-        // World[i+16].col = uint(0xe74c3c);
-        // World[i+16].parent = 3;
-    }   
-
-    World[14].childs[5] = 22;
-    // World[22].is_leaf = false;
-    for(int i = 0; i < 7; i++)
-    {
-        World[22].childs[i] = int(0x2ecc71 + int(LEAF_LIMIT));
-        // World[22].childs[i] = i+23;
-        // World[i+23].is_leaf = true;
-        // World[i+23].col = uint(0x2ecc71);
-        // World[i+23].parent = 3;
-    } 
-
-    World[12].childs[5] = 29;
-    // World[29].is_leaf = false;
-    for(int i = 0; i < 7; i++)
-    {
-        World[29].childs[i] = int(0xFFC300 + int(LEAF_LIMIT));
-        // World[29].childs[i] = i+30;
-        // World[i+30].is_leaf = true;
-        // World[i+30].col = uint(0xFFC300);
-        // World[i+30].parent = 3;
-    } 
 }
 
 void main()
