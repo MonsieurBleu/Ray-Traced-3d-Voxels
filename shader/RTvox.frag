@@ -39,7 +39,7 @@ struct Surface
 {
     float sd; // signed distance value
     uint col;
-    int side;
+    lowp int side;
 };
 
 struct trace_recstat
@@ -47,7 +47,7 @@ struct trace_recstat
     Surface subvoxels[4];
     vec3 suborigin[4];
     int nodes[4];
-    vec3 size;
+    float size;
     int curNode;
     // OctNode node;
 
@@ -56,7 +56,121 @@ struct trace_recstat
 
 trace_recstat stack[MAX_OCTDEPTH+1];
 
-Surface getvox(const vec3 pos, const vec3 size)
+// float boxDistance( in vec3 p, in vec3 rad ) 
+// {
+//     vec2 d = abs(p)-rad;
+//     return length(max(d,0.0)) + min(maxcomp(d),0.0);
+// }
+
+Surface getvox(const vec3 pos, const float size)
+{
+    vec3 maxp = pos + size*0.5;
+    vec3 minp = pos - size*0.5;
+    vec3 cpicd = -campos*icamdir;
+    vec3 minpicd = minp*icamdir;
+    vec3 maxpicd = maxp*icamdir;
+
+    vec3 p;
+    float t;
+
+    Surface return_val;
+    return_val.sd = MAXSD;
+
+    // https://tavianator.com/2011/ray_box.html
+
+    float tx1 = (minp.x - campos.x)*icamdir.x;
+    float tx2 = (maxp.x - campos.x)*icamdir.x;
+    float tmin = min(tx1, tx2);
+    float tmax = max(tx1, tx2);
+
+    float ty1 = (minp.y - campos.y)*icamdir.y;
+    float ty2 = (maxp.y - campos.y)*icamdir.y;
+    tmin = max(tmin, min(ty1, ty2));
+    tmax = min(tmax, max(ty1, ty2));
+
+    float tz1 = (minp.z - campos.z)*icamdir.z;
+    float tz2 = (maxp.z - campos.z)*icamdir.z;
+    tmin = max(tmin, min(tz1, tz2));
+    tmax = min(tmax, max(tz1, tz2));
+
+    if(tmax >= tmin && tmax > 0.0)
+        return_val.sd = tmax;
+
+    return return_val;
+}
+
+Surface getvox_old2(const vec3 pos, const float size)
+{
+    vec3 maxp = pos + size*0.5;
+    vec3 minp = pos - size*0.5;
+    vec3 cpicd = -campos*icamdir;
+    vec3 minpicd = minp*icamdir;
+    vec3 maxpicd = maxp*icamdir;
+
+    vec3 p;
+    float t;
+
+    Surface return_val;
+    return_val.sd = MAXSD;
+
+    //////////////// X //////////////
+    t = minpicd.x + cpicd.x;
+    p.yz = campos.yz + t*camdir.yz;
+    if(t < return_val.sd && p.y >= minp.y && p.y <= maxp.y && p.z >= minp.z && p.z <= maxp.z)
+    {
+        return_val.sd = t;
+        return_val.side = voxside_x;
+    }
+    t = maxpicd.x + cpicd.x;
+    p.yz = campos.yz + t*camdir.yz;
+    if(t < return_val.sd && p.y >= minp.y && p.y <= maxp.y && p.z >= minp.z && p.z <= maxp.z)
+    {
+        return_val.sd = t;
+        return_val.side = voxside_x;
+    }
+
+    //////////////// Y //////////////
+
+    t = maxpicd.y + cpicd.y;
+    p.xz = campos.xz + t*camdir.xz;
+    if(t < return_val.sd && p.x >= minp.x && p.x <= maxp.x && p.z >= minp.z && p.z <= maxp.z)
+    {
+        return_val.sd = t;
+        return_val.side = voxside_y;
+    }
+
+    t = minpicd.y + cpicd.y;
+    p.xz = campos.xz + t*camdir.xz;
+    if(t < return_val.sd && p.x >= minp.x && p.x <= maxp.x && p.z >= minp.z && p.z <= maxp.z)
+    {
+        return_val.sd = t;
+        return_val.side = voxside_y;
+    }
+
+    //////////////// Z //////////////
+    t = minpicd.z + cpicd.z;
+    p.xy = campos.xy + t*camdir.xy;
+    if(t < return_val.sd && p.x >= minp.x && p.x <= maxp.x && p.y >= minp.y && p.y <= maxp.y)
+    {
+        return_val.sd = t;
+        return_val.side = voxside_z;
+    }
+
+    t = maxpicd.z + cpicd.z;
+    p.xy = campos.xy + t*camdir.xy;
+    if(t < return_val.sd && p.x >= minp.x && p.x <= maxp.x && p.y >= minp.y && p.y <= maxp.y)
+    {
+        return_val.sd = t;
+        return_val.side = voxside_z;
+    }
+
+    // if(return_val.sd < 0.0)
+    //     return_val.sd = MAXSD;
+
+    return return_val;
+}
+
+Surface getvox_old(const vec3 pos, const float size)
 {
     vec3 maxp = pos + size*0.5;
     vec3 minp = pos - size*0.5;
@@ -154,10 +268,10 @@ mat2 rotate2d(float theta) {
   return mat2(c, -s, s, c);
 }
 
-void getSubVoxels(int depth, vec3 origin, vec3 size)
+void getSubVoxels(int depth, vec3 origin, float size)
 {
-    vec3 hsize = size*0.5;
-    vec3 qsize = size*0.25;
+    float hsize = size*0.5;
+    float qsize = size*0.25;
 
     stack[depth].size = hsize;
 
@@ -177,14 +291,14 @@ void getSubVoxels(int depth, vec3 origin, vec3 size)
     id[3] = 0;
 
     vec3 suborigin[8];
-    suborigin[0] = vec3(origin.x - qsize.x, origin.y - qsize.y, origin.z - qsize.z);
-    suborigin[1] = vec3(origin.x - qsize.x, origin.y - qsize.y, origin.z + qsize.z);
-    suborigin[2] = vec3(origin.x - qsize.x, origin.y + qsize.y, origin.z - qsize.z);
-    suborigin[3] = vec3(origin.x - qsize.x, origin.y + qsize.y, origin.z + qsize.z);
-    suborigin[4] = vec3(origin.x + qsize.x, origin.y - qsize.y, origin.z - qsize.z);
-    suborigin[5] = vec3(origin.x + qsize.x, origin.y - qsize.y, origin.z + qsize.z);
-    suborigin[6] = vec3(origin.x + qsize.x, origin.y + qsize.y, origin.z - qsize.z);
-    suborigin[7] = vec3(origin.x + qsize.x, origin.y + qsize.y, origin.z + qsize.z);
+    suborigin[0] = vec3(origin.x - qsize, origin.y - qsize, origin.z - qsize);
+    suborigin[1] = vec3(origin.x - qsize, origin.y - qsize, origin.z + qsize);
+    suborigin[2] = vec3(origin.x - qsize, origin.y + qsize, origin.z - qsize);
+    suborigin[3] = vec3(origin.x - qsize, origin.y + qsize, origin.z + qsize);
+    suborigin[4] = vec3(origin.x + qsize, origin.y - qsize, origin.z - qsize);
+    suborigin[5] = vec3(origin.x + qsize, origin.y - qsize, origin.z + qsize);
+    suborigin[6] = vec3(origin.x + qsize, origin.y + qsize, origin.z - qsize);
+    suborigin[7] = vec3(origin.x + qsize, origin.y + qsize, origin.z + qsize);
 
     // GETTING COLLISION WITH RAY
     for(int i = 0; i < 8 && cnt < 4; i++)
@@ -238,7 +352,7 @@ void getSubVoxels(int depth, vec3 origin, vec3 size)
     }
 }
 
-Surface trace(vec3 origin, vec3 size, int depth)
+Surface trace(vec3 origin, float size, int depth)
 {
     getSubVoxels(0, origin, size);
     int i[MAX_OCTDEPTH+1];
@@ -253,15 +367,13 @@ Surface trace(vec3 origin, vec3 size, int depth)
     for(i[depth] = 0; i[depth] < 4; i[depth]++)
     {
         Surface csvoxel = stack[depth].subvoxels[i[depth]];
-        if(csvoxel.sd < voxel.sd && csvoxel.sd > 0.0)
+        if(csvoxel.sd < voxel.sd)
         {
             // if(depth == MAX_OCTDEPTH || csvoxel.sd > 100000.0)
-            // int maxd = MAX_OCTDEPTH ;
+            int maxd = MAX_OCTDEPTH ;
 
-            int maxd = MAX_OCTDEPTH - int(distance(stack[depth].suborigin[i[depth]], campos)/5000.0);
-
-            // int maxd = MAX_OCTDEPTH - int((csvoxel.sd/5000.0));
-            if(maxd < 4) maxd = 4;
+            // int maxd = MAX_OCTDEPTH - int(distance(stack[depth].suborigin[i[depth]], campos)/5000.0);
+            // if(maxd < 4) maxd = 4;
 
             if(depth >= maxd)
             {   
@@ -343,7 +455,7 @@ void main()
     vec3 ro = vec3(3, 10, 10); // ray origin that represents camera position
 
     // float cameraRadius = 1.0;
-    float cameraRadius = 7000;
+    float cameraRadius = 7000.0;
     ro.yz = ro.yz * cameraRadius * rotate2d(mix(PI/2., 0., mouseUV.y));
     ro.xz = ro.xz * rotate2d(mix(-PI, PI, mouseUV.x)) + vec2(lp.x, lp.z);
 
@@ -358,9 +470,7 @@ void main()
     icamdir = 1.0/camdir;
 
     vec3 worldorigin = vec3(0.0);
-    vec3 worldsize = vec3(50000);
-    vec3 worldhsize = worldsize*0.50;
-    vec3 worldqsize = worldsize*0.25;
+    float worldsize = 50000.0;
 
     // check if the ray is out of the world
     Surface world = getvox(worldorigin, worldsize);
@@ -396,9 +506,11 @@ void main()
     else discard;
         //frag_color.rgb = backgroundColor;
 
-    // for(int i = 0; i < 16; i++)
-    // if(test[0xFF-1].parent != 69)
-    //     discard;
+    // campos += camdir*voxel.sd;
+    // camdir = normalize(vec3(0.5, 0.1, 0.5));
+    // Surface shadow = trace(worldorigin, worldsize, 0);
+    // if(shadow.sd < MAXSD)
+    //     frag_color *= 0.25;
 
     frag_color.a = 1.0;
 }

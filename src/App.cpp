@@ -18,7 +18,7 @@ void App::mainInput()
     
     float camspeed = 30.0;
     if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-        camspeed *= 5.0;
+        camspeed *= 10.0;
 
     if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {
