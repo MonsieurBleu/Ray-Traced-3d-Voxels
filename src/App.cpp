@@ -70,13 +70,17 @@ void App::mainloop()
     World[0].lod_surface.color = {0xc7, 0x21, 0x8b};
     World[0].lod_surface.info  = 0;
     for(int i = 0; i < 7; i++)
-    {   
+    if(i == 0 || i == 1 || i == 4 || i == 5)
+    {
         World[0].childs[i].ptr.pos = 1;
         World[0].childs[i].ptr.oct_chunk_pos = 0;
-
+    }
+    for(int i = 0; i < 7; i++)
+    {   
         World[1].childs[i].ptr.pos = 1;
         World[1].childs[i].ptr.oct_chunk_pos = 0;
     }
+
 
     // // Generating depth test
     // for(int i = 0; i < 6; i++)
