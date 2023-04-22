@@ -4,6 +4,12 @@
 #include <iostream>
 #include <Shader.hpp>
 
+struct fCoord3D
+{
+    float x, y, z;
+};
+
+
 enum AppState
 {
     quit,
@@ -16,6 +22,9 @@ class App
         AppState state = run;
         GLFWwindow* window;
         uint64_t timestart;
+
+
+        fCoord3D campos = {0, 0, 0};
 
         void mainInput();
 

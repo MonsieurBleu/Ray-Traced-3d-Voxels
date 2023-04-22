@@ -15,6 +15,35 @@ void App::mainInput()
 {
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         state = quit;
+    
+    float camspeed = 30.0;
+    if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+        camspeed *= 5.0;
+
+    if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    {
+        campos.y += camspeed;
+    }
+    if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    {
+        campos.y -= camspeed;
+    }
+    if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    {
+        campos.x += camspeed;
+    }
+    if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    {
+        campos.x -= camspeed;
+    }
+    if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+    {
+        campos.z += camspeed;
+    }
+    if(glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+    {
+        campos.z -= camspeed;
+    }
 }
 
 
@@ -70,7 +99,7 @@ void App::mainloop()
     World[0].lod_surface.color = {0xc7, 0x21, 0x8b};
     World[0].lod_surface.info  = 0;
     for(int i = 0; i < 7; i++)
-    if(i == 0 || i == 1 || i == 4 || i == 5)
+    // if(i == 0 || i == 1 || i == 4 || i == 5)
     {
         World[0].childs[i].ptr.pos = 1;
         World[0].childs[i].ptr.oct_chunk_pos = 0;
@@ -149,6 +178,11 @@ void App::mainloop()
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
         glUniform1f(1, (Get_time_ms()-timestart)*1.0/1000.0);
+        glUniform3fv(2, 1, (const GLfloat *)&campos);
+        double xpos, ypos;
+        glfwGetCursorPos(window, &xpos, &ypos);
+        float mouse[2] = {xpos, ypos};
+        glUniform2fv(3, 1, mouse);
 
         glfwPollEvents();
         glfwSwapBuffers(window);
