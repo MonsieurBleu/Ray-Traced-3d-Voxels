@@ -200,27 +200,27 @@ void getSubVoxels(int depth, vec3 origin, vec3 size)
         }
 
     // SORTING RESULT
-    if(sd[0].sd >= sd[1].sd)
+    if(sd[0].sd > sd[1].sd)
     {
         Surface   tmp = sd[0]; sd[0] = sd[1]; sd[1] = tmp;
         lowp int stmp = id[0]; id[0] = id[1]; id[1] = stmp;
     }
-    if(sd[2].sd >= sd[3].sd)
+    if(sd[2].sd > sd[3].sd)
     {
         Surface   tmp = sd[2]; sd[2] = sd[3]; sd[3] = tmp;
         lowp int stmp = id[2]; id[2] = id[3]; id[3] = stmp;
     }
-    if(sd[0].sd >= sd[2].sd)
+    if(sd[0].sd > sd[2].sd)
     {
         Surface   tmp = sd[0]; sd[0] = sd[2]; sd[2] = tmp;
         lowp int stmp = id[0]; id[0] = id[2]; id[2] = stmp;
     }
-    if(sd[1].sd >= sd[3].sd)
+    if(sd[1].sd > sd[3].sd)
     {
         Surface   tmp = sd[1]; sd[1] = sd[3]; sd[3] = tmp;
         lowp int stmp = id[1]; id[1] = id[3]; id[3] = stmp;
     }
-    if(sd[1].sd >= sd[2].sd)
+    if(sd[1].sd > sd[2].sd)
     {
         Surface   tmp = sd[1]; sd[1] = sd[2]; sd[2] = tmp;
         lowp int stmp = id[1]; id[1] = id[2]; id[2] = stmp;
@@ -257,8 +257,12 @@ Surface trace(vec3 origin, vec3 size, int depth)
         {
             // if(depth == MAX_OCTDEPTH || csvoxel.sd > 100000.0)
             // int maxd = MAX_OCTDEPTH ;
-            int maxd = MAX_OCTDEPTH - int((csvoxel.sd/5000.0));
+
+            int maxd = MAX_OCTDEPTH - int(distance(stack[depth].suborigin[i[depth]], campos)/5000.0);
+
+            // int maxd = MAX_OCTDEPTH - int((csvoxel.sd/5000.0));
             if(maxd < 4) maxd = 4;
+
             if(depth >= maxd)
             {   
                 csvoxel.col = World[stack[depth].curNode].col;
@@ -326,10 +330,10 @@ void main()
 {
     uv = (gl_FragCoord.xy-iResolution.xy*0.5)/iResolution.xx;
     // vec2 mouseUV = iMouse.xy/iResolution.xy; // Range: <0, 1>
-    // vec2 mouseUV = vec2(0.5, 0.75);
+    vec2 mouseUV = vec2(0.5, 0.75);
     // mouseUV.x -= iTime*0.1;
     // mouseUV.y = iTime*0.1;
-    vec2 mouseUV = MousePositon/iResolution.xy;
+    // vec2 mouseUV = MousePositon/iResolution.xy;
     vec3 backgroundColor = vec3(101.f, 194.f, 245.f)/256.f;
 
     vec3 col = vec3(0);
@@ -338,7 +342,8 @@ void main()
     // lp.z = sin(iTime)*5000.0;
     vec3 ro = vec3(3, 10, 10); // ray origin that represents camera position
 
-    float cameraRadius = 1.0;
+    // float cameraRadius = 1.0;
+    float cameraRadius = 7000;
     ro.yz = ro.yz * cameraRadius * rotate2d(mix(PI/2., 0., mouseUV.y));
     ro.xz = ro.xz * rotate2d(mix(-PI, PI, mouseUV.x)) + vec2(lp.x, lp.z);
 
