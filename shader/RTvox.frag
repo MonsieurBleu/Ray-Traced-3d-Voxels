@@ -24,7 +24,7 @@ out vec4 frag_color;
 #define voxside_x 1
 #define voxside_y 2
 #define voxside_z 3
-#define MAX_OCTDEPTH 8
+#define MAX_OCTDEPTH 10
 
 const uint LEAF_LIMIT = uint(0x80000000);
 
@@ -51,8 +51,6 @@ struct trace_recstat
 
     //lowp int sorted_id[8];
 };
-
-bool lod_mod = false;
 
 trace_recstat stack[MAX_OCTDEPTH+1];
 
@@ -431,9 +429,13 @@ Surface trace(vec3 origin, vec3 size, int depth)
     for(i[depth] = 0; i[depth] < 4; i[depth]++)
     {
         Surface csvoxel = stack[depth].subvoxels[i[depth]];
-        if(csvoxel.sd < voxel.sd)
+        if(csvoxel.sd < voxel.sd && csvoxel.sd > 0.0)
         {
-            if(depth == MAX_OCTDEPTH)
+            // if(depth == MAX_OCTDEPTH || csvoxel.sd > 100000.0)
+            // int maxd = MAX_OCTDEPTH ;
+            int maxd = MAX_OCTDEPTH - int((csvoxel.sd/5000.0));
+            if(maxd < 1) maxd = 1;
+            if(depth >= maxd)
             {   
                 csvoxel.col = World[stack[depth].curNode].col;
                 return csvoxel;
@@ -509,7 +511,8 @@ void main()
     vec3 lp = vec3(0, 0, 0); // lookat point (aka camera target)
     vec3 ro = vec3(3, 10, 10); // ray origin that represents camera position
 
-    float cameraRadius = 7000.0;
+    // float cameraRadius = 7000.0;
+    float cameraRadius = 700.0;
     ro.yz = ro.yz * cameraRadius * rotate2d(mix(PI/2., 0., mouseUV.y));
     ro.xz = ro.xz * rotate2d(mix(-PI, PI, mouseUV.x)) + vec2(lp.x, lp.z);
 
