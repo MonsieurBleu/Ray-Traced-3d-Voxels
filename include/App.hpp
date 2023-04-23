@@ -25,6 +25,7 @@ class App
 
 
         fCoord3D campos = {0, 0, 0};
+        float FOV = 1.5;
 
         void mainInput();
 

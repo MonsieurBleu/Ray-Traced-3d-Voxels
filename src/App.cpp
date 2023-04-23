@@ -44,6 +44,14 @@ void App::mainInput()
     {
         campos.z -= camspeed;
     }
+    if(glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_PRESS)
+    {
+        FOV -= 0.1;
+    }
+    if(glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS)
+    {
+        FOV += 0.1;
+    }
 }
 
 
@@ -183,6 +191,7 @@ void App::mainloop()
         glfwGetCursorPos(window, &xpos, &ypos);
         float mouse[2] = {xpos, ypos};
         glUniform2fv(3, 1, mouse);
+        glUniform1f(4, FOV);
 
         glfwPollEvents();
         glfwSwapBuffers(window);

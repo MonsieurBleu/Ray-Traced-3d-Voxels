@@ -4,6 +4,7 @@ layout (location = 0) uniform ivec2 iResolution;
 layout (location = 1) uniform float iTime;
 layout (location = 2) uniform vec3 CameraPositon;
 layout (location = 3) uniform vec2 MousePositon;
+layout (location = 4) uniform float FOV;
 
 struct OctNode
 {
@@ -62,39 +63,36 @@ trace_recstat stack[MAX_OCTDEPTH+1];
 //     return length(max(d,0.0)) + min(maxcomp(d),0.0);
 // }
 
-Surface getvox(const vec3 pos, const float size)
+Surface getvox(const vec3 pos, const float hsize)
 {
-    vec3 maxp = pos + size*0.5;
-    vec3 minp = pos - size*0.5;
+    vec3 maxp = pos + hsize;
+    vec3 minp = pos - hsize;
     vec3 cpicd = -campos*icamdir;
     vec3 minpicd = minp*icamdir;
     vec3 maxpicd = maxp*icamdir;
-
-    vec3 p;
-    float t;
 
     Surface return_val;
     return_val.sd = MAXSD;
 
     // https://tavianator.com/2011/ray_box.html
 
-    float tx1 = (minp.x - campos.x)*icamdir.x;
-    float tx2 = (maxp.x - campos.x)*icamdir.x;
+    float tx1 = minpicd.x+cpicd.x;
+    float tx2 = maxpicd.x+cpicd.x;
     float tmin = min(tx1, tx2);
     float tmax = max(tx1, tx2);
 
-    float ty1 = (minp.y - campos.y)*icamdir.y;
-    float ty2 = (maxp.y - campos.y)*icamdir.y;
+    float ty1 = minpicd.y+cpicd.y;
+    float ty2 = maxpicd.y+cpicd.y;
     tmin = max(tmin, min(ty1, ty2));
     tmax = min(tmax, max(ty1, ty2));
 
-    float tz1 = (minp.z - campos.z)*icamdir.z;
-    float tz2 = (maxp.z - campos.z)*icamdir.z;
+    float tz1 = minpicd.z+cpicd.z;
+    float tz2 = maxpicd.z+cpicd.z;
     tmin = max(tmin, min(tz1, tz2));
     tmax = min(tmax, max(tz1, tz2));
 
-    if(tmax >= tmin && tmax > 0.0)
-        return_val.sd = tmax;
+    if(tmax >= tmin && tmin > 0.0)
+        return_val.sd = tmin;
 
     return return_val;
 }
@@ -300,18 +298,98 @@ void getSubVoxels(int depth, vec3 origin, float size)
     suborigin[6] = vec3(origin.x + qsize, origin.y + qsize, origin.z - qsize);
     suborigin[7] = vec3(origin.x + qsize, origin.y + qsize, origin.z + qsize);
 
-    // GETTING COLLISION WITH RAY
-    for(int i = 0; i < 8 && cnt < 4; i++)
-        if(node.childs[i] != 0)
-        {
-            sd[cnt] = getvox(suborigin[i], hsize);
+    Surface t;
 
-            if(sd[cnt].sd != MAXSD)
-            {
-                id[cnt] = i;
-                cnt++;
-            }
+    // GETTING COLLISION WITH RAY
+    if(node.childs[0] != 0)
+    {
+        t = getvox(suborigin[0], qsize);
+
+        if(t.sd != MAXSD)
+        {
+            id[cnt] = 0;
+            sd[cnt] = t;
+            cnt++;
         }
+    }
+    if(node.childs[1] != 0)
+    {
+        t = getvox(suborigin[1], qsize);
+
+        if(t.sd != MAXSD)
+        {
+            id[cnt] = 1;
+            sd[cnt] = t;
+            cnt++;
+        }
+    }
+    if(node.childs[2] != 0)
+    {
+        t = getvox(suborigin[2], qsize);
+
+        if(t.sd != MAXSD)
+        {
+            id[cnt] = 2;
+            sd[cnt] = t;
+            cnt++;
+        }
+    }
+    if(node.childs[3] != 0)
+    {
+        t = getvox(suborigin[3], qsize);
+
+        if(t.sd != MAXSD)
+        {
+            id[cnt] = 3;
+            sd[cnt] = t;
+            cnt++;
+        }
+    }
+    if(node.childs[4] != 0)
+    {
+        t = getvox(suborigin[4], qsize);
+
+        if(t.sd != MAXSD)
+        {
+            id[cnt] = 4;
+            sd[cnt] = t;
+            cnt++;
+        }
+    }
+    if(node.childs[5] != 0)
+    {
+        t = getvox(suborigin[5], qsize);
+
+        if(t.sd != MAXSD)
+        {
+            id[cnt] = 5;
+            sd[cnt] = t;
+            cnt++;
+        }
+    }
+    if(node.childs[6] != 0)
+    {
+        t = getvox(suborigin[6], qsize);
+
+        if(t.sd != MAXSD)
+        {
+            id[cnt] = 6;
+            sd[cnt] = t;
+            cnt++;
+        }
+    }
+    if(node.childs[7] != 0)
+    {
+        t = getvox(suborigin[7], qsize);
+
+        if(t.sd != MAXSD)
+        {
+            id[cnt] = 7;
+            sd[cnt] = t;
+            cnt++;
+        }
+    }
+
 
     // SORTING RESULT
     if(sd[0].sd > sd[1].sd)
@@ -438,42 +516,132 @@ vec3 hsv2rgb(vec3 c)
     return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
 }
 
+// given spherical coordinates (theta, phi) of a normal vector (OR longitude and latitude)
+// find the normal vector, and two vectors that are perpendicular to it (and each other)
+// that lie on the plane defined by the normal vector
+void findUV(in float th, in float ph, out vec3 dir, out vec3 u, out vec3 v) {
+	dir = vec3(sin(th)*cos(ph), cos(th), sin(th)*sin(ph));
+	// Second direction, V of the plane, is PI/2 upwards towards the north pole
+	float thV, phV;
+	if(th < 0.5*PI) {
+		thV = 0.5*PI - th;
+		phV = mod(ph + PI, 2.0*PI);
+	} else {
+		thV = th - 0.5*PI;
+		phV = ph;
+	}
+	v = vec3(sin(thV)*cos(phV), cos(thV), sin(thV)*sin(phV));
+	// Third direction, U of plane, is perpendicular to both
+	u = cross(dir, v);
+}
+
+// the bad example from IQ's article, Haha!
+// https://iquilezles.org/articles/noacos
+mat3 rotationAxisAngle( vec3 v, float angle )
+{
+    float s = sin( angle );
+    float c = cos( angle );
+    float ic = 1.0 - c;
+
+    return mat3( v.x*v.x*ic + c,     v.y*v.x*ic - s*v.z, v.z*v.x*ic + s*v.y,
+                 v.x*v.y*ic + s*v.z, v.y*v.y*ic + c,     v.z*v.y*ic - s*v.x,
+                 v.x*v.z*ic - s*v.y, v.y*v.z*ic + s*v.x, v.z*v.z*ic + c );
+}
+
 void main()
 {
     uv = (gl_FragCoord.xy-iResolution.xy*0.5)/iResolution.xx;
-    // vec2 mouseUV = iMouse.xy/iResolution.xy; // Range: <0, 1>
-    vec2 mouseUV = vec2(0.5, 0.75);
-    // mouseUV.x -= iTime*0.1;
-    // mouseUV.y = iTime*0.1;
-    // vec2 mouseUV = MousePositon/iResolution.xy;
-    vec3 backgroundColor = vec3(101.f, 194.f, 245.f)/256.f;
+    // // vec2 mouseUV = iMouse.xy/iResolution.xy; // Range: <0, 1>
+    // vec2 mouseUV = vec2(0.5, 0.75);
+    // // mouseUV.x -= iTime*0.1;
+    // // mouseUV.y = iTime*0.1;
+    vec2 mouseUV = MousePositon/iResolution.xy;
+    // vec3 backgroundColor = vec3(101.f, 194.f, 245.f)/256.f;
 
-    vec3 col = vec3(0);
-    vec3 lp = vec3(0, 0, 0); // lookat point (aka camera target)
-    // lp.x = cos(iTime)*5000.0;
-    // lp.z = sin(iTime)*5000.0;
-    vec3 ro = vec3(3, 10, 10); // ray origin that represents camera position
+    // vec3 col = vec3(0);
+    // vec3 lp = vec3(0, 0, 0); // lookat point (aka camera target)
+    // // lp.x = cos(iTime)*5000.0;
+    // // lp.z = sin(iTime)*5000.0;
+    // vec3 ro = vec3(3, 10, 10); // ray origin that represents camera position
 
-    // float cameraRadius = 1.0;
-    float cameraRadius = 7000.0;
-    ro.yz = ro.yz * cameraRadius * rotate2d(mix(PI/2., 0., mouseUV.y));
-    ro.xz = ro.xz * rotate2d(mix(-PI, PI, mouseUV.x)) + vec2(lp.x, lp.z);
+    // // float cameraRadius = 1.0;
+    // float cameraRadius = 7000.0;
+    // ro.yz = ro.yz * cameraRadius * rotate2d(mix(PI/2., 0., mouseUV.y));
+    // ro.xz = ro.xz * rotate2d(mix(-PI, PI, mouseUV.x)) + vec2(lp.x, lp.z);
 
-    vec3 rd = camera(ro, lp) * normalize(vec3(uv, -1)); // ray direction
+    // vec3 rd = camera(ro, lp) * normalize(vec3(uv, -1)); // ray direction
 
-    ro.zy = ro.yz;
-    rd.zy = rd.yz;
+    // ro.zy = ro.yz;
+    // rd.zy = rd.yz;
 
-    // campos.x = cos(iTime)*50000.0;
+    // // campos.x = cos(iTime)*50000.0;
+    // campos += ro;
+    // camdir = rd;
+    // icamdir = 1.0/camdir;
+
+    uv += 0.5;
+    mouseUV *= 2.0;
+    vec2 uv = gl_FragCoord.xy / iResolution.xy;
+    // https://www.shadertoy.com/view/4sj3WK
+	// Camera (My own attempt of preparing a camera. Use at your own risk!)
+	vec3 ro = vec3( 50000.0, 0.0, 0.0); // origin
+    // vec3 ro = CameraPositon;
+	float cTheta = mouseUV.y*PI; // polar theta of direction
+	// float cPhi = 0.2*PI*sin(iTime)-0.5*PI; // polar phi of direaction
+    float cPhi = mouseUV.x*PI; // polar phi of direaction
+	// float cAlpha = 0.1*PI*cos(iTime); // tilt
+    float cAlpha = 0.0;
+	//float FOV = 1.0; // smaller number wider view and vice versa.
+	// direct the camera at given latitude and longitude
+	vec3 cDir, cU, cV;
+	findUV(cTheta, cPhi, cDir, cU, cV);	
+	// // Tilt the camera
+	mat3 tilt = rotationAxisAngle(cDir, cAlpha);
+	cU = tilt*cU; // just rotate camera U and V. Yay, tt works!
+	cV = tilt*cV;	
+	vec2 scan = (-1.0+2.0*uv)*vec2(1.78, 1.0); // magical numbers
+	vec3 rd = normalize(scan.x * cU + scan.y * cV + FOV*cDir);
+	//vec3 rd = normalize(vec3( (-1.0+2.0*uv)*vec2(1.78, 1.0), -1.0));
+
+
+
+
+
+
+    // https://www.shadertoy.com/view/ld23DV
+	// vec2 p = (2.0*gl_FragCoord.xy-iResolution.xy) / iResolution.y;
+    // vec2 p = (gl_FragCoord.xy-iResolution.xy*0.5)/iResolution.xx;
+
+    //  // camera movement	
+	// float an = 0.4*iTime;
+	// // vec3 ro = vec3( 2.5*cos(an), 1.0, 2.5*sin(an) );
+    // vec3 ro = CameraPositon;
+    // // vec3 ro = vec3(0.0);
+    // vec3 ta = vec3( 0.0, 0.8, 0.0 );
+    // // vec3 ta = CameraPositon;
+
+    // // camera matrix
+    // vec3 ww = normalize( ta - ro );
+    // vec3 uu = normalize( cross(ww,vec3(0.0,1.0,0.0) ) );
+    // vec3 vv = normalize( cross(uu,ww));
+	// // create view ray
+	// vec3 rd = normalize( p.x*uu + p.y*vv + 2.0*ww );
+
     campos += ro;
     camdir = rd;
     icamdir = 1.0/camdir;
+
+
+
+
+
+
 
     vec3 worldorigin = vec3(0.0);
     float worldsize = 50000.0;
 
     // check if the ray is out of the world
-    Surface world = getvox(worldorigin, worldsize);
+    Surface world = getvox(worldorigin, worldsize*0.5);
     if(world.sd == MAXSD) discard;
 
     Surface voxel = trace(worldorigin, worldsize, 0);
