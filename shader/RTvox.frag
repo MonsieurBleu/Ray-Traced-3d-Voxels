@@ -1,4 +1,4 @@
-#version 460
+#version 450
 
 layout (location = 0) uniform ivec2 iResolution;
 layout (location = 1) uniform float iTime;
@@ -14,7 +14,8 @@ struct OctNode
 };
 
 #define OCTREE_CHUNK_SIZE 0xFFFF
-layout (std430, binding=2) readonly restrict buffer shader_data
+// layout (std430, binding=2) readonly restrict buffer shader_data
+layout (std430, binding=2) readonly buffer shader_data
 {
     OctNode World[OCTREE_CHUNK_SIZE];
 };
@@ -55,13 +56,20 @@ struct trace_recstat
     //lowp int sorted_id[8];
 };
 
-trace_recstat stack[MAX_OCTDEPTH+1];
+trace_recstat stack[MAX_OCTDEPTH];
 
-// float boxDistance( in vec3 p, in vec3 rad ) 
-// {
-//     vec2 d = abs(p)-rad;
-//     return length(max(d,0.0)) + min(maxcomp(d),0.0);
-// }
+// trace_recstat stack[MAX_OCTDEPTH] = {
+//         {{{0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}}, {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}, {0, 0, 0, 0}, 0.0, 0},
+//         {{{0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}}, {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}, {0, 0, 0, 0}, 0.0, 0},
+//         {{{0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}}, {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}, {0, 0, 0, 0}, 0.0, 0},
+//         {{{0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}}, {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}, {0, 0, 0, 0}, 0.0, 0},
+//         {{{0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}}, {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}, {0, 0, 0, 0}, 0.0, 0},
+//         {{{0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}}, {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}, {0, 0, 0, 0}, 0.0, 0},
+//         {{{0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}}, {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}, {0, 0, 0, 0}, 0.0, 0},
+//         {{{0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}}, {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}, {0, 0, 0, 0}, 0.0, 0},
+//         {{{0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}}, {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}, {0, 0, 0, 0}, 0.0, 0},
+//         {{{0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}}, {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}, {0, 0, 0, 0}, 0.0, 0}
+//     };
 
 Surface getvox(const vec3 pos, const float hsize)
 {
@@ -91,8 +99,21 @@ Surface getvox(const vec3 pos, const float hsize)
     tmin = max(tmin, min(tz1, tz2));
     tmax = min(tmax, max(tz1, tz2));
 
-    if(tmax >= tmin && tmin > 0.0)
+
+
+    if(tmax >= tmin && tmax > 0.0)
         return_val.sd = tmin;
+    else 
+        return return_val;
+    
+    if(return_val.sd == tx1 ||return_val.sd == tx2)
+        return_val.side = voxside_x;
+
+    if(return_val.sd == ty1 ||return_val.sd == ty2)
+        return_val.side = voxside_y;
+
+    if(return_val.sd == tz1 ||return_val.sd == tz2)
+        return_val.side = voxside_z;
 
     return return_val;
 }
@@ -448,10 +469,10 @@ Surface trace(vec3 origin, float size, int depth)
         if(csvoxel.sd < voxel.sd)
         {
             // if(depth == MAX_OCTDEPTH || csvoxel.sd > 100000.0)
-            int maxd = MAX_OCTDEPTH ;
+            // int maxd = MAX_OCTDEPTH ;
 
-            // int maxd = MAX_OCTDEPTH - int(distance(stack[depth].suborigin[i[depth]], campos)/5000.0);
-            // if(maxd < 4) maxd = 4;
+            int maxd = MAX_OCTDEPTH - int(distance(stack[depth].suborigin[i[depth]], campos)/5000.0);
+            if(maxd < 4) maxd = 4;
 
             if(depth >= maxd)
             {   
@@ -486,18 +507,6 @@ Surface trace(vec3 origin, float size, int depth)
 
     return voxel;
 }
-
-// void test()
-// {
-//     World[1].col = 0x21c78b;
-//     World[0].col= 0x21c78b;
-//     for(int i = 0; i < 6; i++)
-//     {   
-//         World[0].childs[i] = 1;
-//         World[1].childs[i] = 1;
-//     }
-// }
-
 vec3 rgb2hsv(vec3 c)
 {
     vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
@@ -550,13 +559,38 @@ mat3 rotationAxisAngle( vec3 v, float angle )
 
 void main()
 {
+    frag_color = vec4(0.0);
+
+    // if(noise1(gl_FragCoord.x) >= 0.0)
+    // {
+    //     frag_color = vec4(1.0);
+    //     return;
+    // }
+
+    // if(int(iTime*1000.0)%2 == 0)
+    // {
+    //     if(int(gl_FragCoord.x)%2 == 0)
+    //         discard;
+
+    //     if(int(gl_FragCoord.y)%2 == 0)
+    //         discard;
+    // }
+    // else
+    // {
+    //     if(int(gl_FragCoord.x)%2 != 0)
+    //         discard;
+
+    //     if(int(gl_FragCoord.y)%2 != 0)
+    //         discard; 
+    // }
+
     uv = (gl_FragCoord.xy-iResolution.xy*0.5)/iResolution.xx;
     // // vec2 mouseUV = iMouse.xy/iResolution.xy; // Range: <0, 1>
     // vec2 mouseUV = vec2(0.5, 0.75);
     // // mouseUV.x -= iTime*0.1;
     // // mouseUV.y = iTime*0.1;
     vec2 mouseUV = MousePositon/iResolution.xy;
-    // vec3 backgroundColor = vec3(101.f, 194.f, 245.f)/256.f;
+    vec4 backgroundColor = vec4(101.f, 194.f, 245.f, 256.f)/256.f;
 
     // vec3 col = vec3(0);
     // vec3 lp = vec3(0, 0, 0); // lookat point (aka camera target)
@@ -579,6 +613,10 @@ void main()
     // camdir = rd;
     // icamdir = 1.0/camdir;
 
+
+
+    // mouseUV = vec2(981.0, 296.0)/iResolution.xy;
+
     uv += 0.5;
     mouseUV *= 2.0;
     vec2 uv = gl_FragCoord.xy / iResolution.xy;
@@ -586,9 +624,12 @@ void main()
 	// Camera (My own attempt of preparing a camera. Use at your own risk!)
 	vec3 ro = vec3( 50000.0, 0.0, 0.0); // origin
     // vec3 ro = CameraPositon;
+
+
 	float cTheta = mouseUV.y*PI; // polar theta of direction
-	// float cPhi = 0.2*PI*sin(iTime)-0.5*PI; // polar phi of direaction
     float cPhi = mouseUV.x*PI; // polar phi of direaction
+
+
 	// float cAlpha = 0.1*PI*cos(iTime); // tilt
     float cAlpha = 0.0;
 	//float FOV = 1.0; // smaller number wider view and vice versa.
@@ -638,11 +679,15 @@ void main()
 
 
     vec3 worldorigin = vec3(0.0);
-    float worldsize = 50000.0;
+    float worldsize = 150000.0;
 
     // check if the ray is out of the world
     Surface world = getvox(worldorigin, worldsize*0.5);
-    if(world.sd == MAXSD) discard;
+    if(world.sd == MAXSD)
+    {
+        frag_color = backgroundColor;
+        return;
+    }
 
     Surface voxel = trace(worldorigin, worldsize, 0);
 
@@ -671,8 +716,8 @@ void main()
         }
 
     }
-    else discard;
-        //frag_color.rgb = backgroundColor;
+    else
+        frag_color = backgroundColor;
 
     // campos += camdir*voxel.sd;
     // camdir = normalize(vec3(0.5, 0.1, 0.5));

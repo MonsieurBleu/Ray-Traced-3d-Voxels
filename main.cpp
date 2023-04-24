@@ -27,6 +27,7 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);*/
 
     GLFWwindow* window = glfwCreateWindow(1920, 1080, "RT Voxels", NULL, NULL);
+    // GLFWwindow* window = glfwCreateWindow(3440, 1440, "RT Voxels", NULL, NULL);
     if (!window) {
     std::cerr << "ERROR: could not open window with GLFW3\n";
     glfwTerminate();

@@ -120,8 +120,8 @@ ShaderError ShaderProgram::CompileAndLink()
     glGetProgramiv(program, GL_LINK_STATUS, &result);
     glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLength);
 
-    // if(logLength > 0 && result != GL_TRUE)
-    if(logLength > 0)
+    if(logLength > 0 && result != GL_TRUE)
+    // if(logLength > 0)
     {
         char programError[logLength];
         glGetProgramInfoLog(program, logLength, NULL, programError);

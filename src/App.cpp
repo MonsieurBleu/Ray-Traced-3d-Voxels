@@ -106,13 +106,13 @@ void App::mainloop()
     World[1].lod_surface.info  = 0;
     World[0].lod_surface.color = {0xc7, 0x21, 0x8b};
     World[0].lod_surface.info  = 0;
-    for(int i = 0; i < 7; i++)
+    for(int i = 0; i < 6; i++)
     // if(i == 0 || i == 1 || i == 4 || i == 5)
     {
         World[0].childs[i].ptr.pos = 1;
         World[0].childs[i].ptr.oct_chunk_pos = 0;
     }
-    for(int i = 0; i < 7; i++)
+    for(int i = 0; i < 6; i++)
     {   
         World[1].childs[i].ptr.pos = 1;
         World[1].childs[i].ptr.oct_chunk_pos = 0;
@@ -192,6 +192,7 @@ void App::mainloop()
         float mouse[2] = {xpos, ypos};
         glUniform2fv(3, 1, mouse);
         glUniform1f(4, FOV);
+        // std::cout << mouse[0] << "\t" << mouse[1] << "\n";
 
         glfwPollEvents();
         glfwSwapBuffers(window);
