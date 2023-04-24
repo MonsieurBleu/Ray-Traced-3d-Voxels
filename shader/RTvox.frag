@@ -71,8 +71,12 @@ trace_recstat stack[MAX_OCTDEPTH];
 //         {{{0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}}, {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}, {0, 0, 0, 0}, 0.0, 0}
 //     };
 
+uint getvoxcnt = 0;
+
 Surface getvox(const vec3 pos, const float hsize)
 {
+    getvoxcnt ++;
+
     vec3 maxp = pos + hsize;
     vec3 minp = pos - hsize;
     vec3 cpicd = -campos*icamdir;
@@ -120,6 +124,7 @@ Surface getvox(const vec3 pos, const float hsize)
 
 Surface getvox_old2(const vec3 pos, const float size)
 {
+    getvoxcnt ++;
     vec3 maxp = pos + size*0.5;
     vec3 minp = pos - size*0.5;
     vec3 cpicd = -campos*icamdir;
@@ -693,16 +698,23 @@ void main()
 
     if(voxel.sd < MAXSD)
     {
+        //// getting voxel color
         // voxel.col = uint(voxel.sd);
-        uint r = (voxel.col>>uint(16))%uint(256);
-        uint g = (voxel.col>>uint(8))%uint(256);
-        uint b = (voxel.col)%uint(256);
+        // uint r = (voxel.col>>uint(16))%uint(256);
+        // uint g = (voxel.col>>uint(8))%uint(256);
+        // uint b = (voxel.col)%uint(256);
         // vec3 vcol = vec3(float(r), float(g), float(b))/256.0;
 
-        // cool depth visualisation
-        r = uint(voxel.sd/512.0);
-        g = 175;
-        b = 175;
+        //// cool depth visualisation
+        // r = uint(voxel.sd/512.0);
+        // g = 175;
+        // b = 175;
+        // vec3 vcol = hsv2rgb(vec3(float(r), float(g), float(b))/256.0);
+
+        //// getvoxls calls vizualisation
+        uint r = getvoxcnt;
+        uint g = 175;
+        uint b = 175;
         vec3 vcol = hsv2rgb(vec3(float(r), float(g), float(b))/256.0);
 
         frag_color.rgb = vcol;
@@ -717,7 +729,14 @@ void main()
 
     }
     else
-        frag_color = backgroundColor;
+    {
+        uint r = getvoxcnt;
+        uint g = 175;
+        uint b = 175;
+        vec3 vcol = hsv2rgb(vec3(float(r), float(g), float(b))/256.0);
+        frag_color.rgb = vcol;
+        // frag_color = backgroundColor;
+    }
 
     // campos += camdir*voxel.sd;
     // camdir = normalize(vec3(0.5, 0.1, 0.5));
