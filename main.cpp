@@ -6,8 +6,32 @@
 #include <App.hpp>
 #include <Utils.hpp>
 
+int unit_test()
+{
+    vec3<uint64_t>   u(5);
+    vec3<float> v(10.0, 10.0, 10.5);
+
+    u = u+5;
+
+    std::cout << u;
+
+    // u = v;
+    // std::cout << v+u << "\n";  
+    // std::cout << v-u << "\n";    
+    // std::cout << v*u << "\n";  
+    // std::cout << v/u << "\n";  
+    // std::cout << v+0.5 << "\n";  
+    // std::cout << v-0.5 << "\n";    
+    // std::cout << v*0.5 << "\n";  
+    // std::cout << v/0.5 << "\n";  
+
+    exit(EXIT_SUCCESS);
+};
+
 int main()
 {
+    unit_test();
+
     atexit(checkHeap);
 
     system("cls");

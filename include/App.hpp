@@ -2,6 +2,8 @@
 #define APP_HPP
 
 #include <iostream>
+
+#include <Vectors.hpp> 
 #include <Shader.hpp>
 
 struct fCoord3D
