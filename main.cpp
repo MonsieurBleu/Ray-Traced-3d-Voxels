@@ -11,7 +11,7 @@ int unit_test()
     vec3<uint64_t>   u(5);
     vec3<float> v(10.0, 10.0, 10.5);
 
-    std::cout << v+5 << "\n"; ;
+    std::cout << vec3(5)+5 << "\n"; ;
     std::cout << v-5.75f << "\n"; ;
     std::cout << v*5.5f << "\n"; ;
     std::cout << v/5.0f << "\n"; ;
