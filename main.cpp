@@ -32,6 +32,7 @@ int unit_test()
 int main()
 {
     // unit_test();
+    std::cout << sizeof(vec3<char>) << "\n";
 
     atexit(checkHeap);
 

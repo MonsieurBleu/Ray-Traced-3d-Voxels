@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-#include <Vectors.hpp> 
+#include <Camera.hpp>
 #include <Shader.hpp>
 
 struct fCoord3D
@@ -26,8 +26,7 @@ class App
         uint64_t timestart;
 
 
-        fCoord3D campos = {0, 0, 0};
-        float FOV = 1.5;
+        Camera camera;
 
         void mainInput();
 

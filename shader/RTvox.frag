@@ -4,9 +4,10 @@
 
 layout (location = 0) uniform ivec2 iResolution;
 layout (location = 1) uniform float iTime;
-layout (location = 2) uniform vec3 CameraPositon;
-layout (location = 3) uniform vec2 MousePositon;
-layout (location = 4) uniform float FOV;
+layout (location = 2) uniform vec3  CameraPositon;
+layout (location = 3) uniform vec3  CameraDirection;
+layout (location = 4) uniform vec2  polardir;
+layout (location = 5) uniform float FOV;
 
 struct OctNode
 {
@@ -26,7 +27,7 @@ layout (std430, binding=2) readonly buffer shader_data
 out vec4 frag_color;
 
 #define PI 3.14159265359
-#define MAXSD 200000.0
+#define MAXSD 800000.0
 #define voxside_x 1
 #define voxside_y 2
 #define voxside_z 3
@@ -478,8 +479,8 @@ Surface trace(vec3 origin, float size, int depth)
             // if(depth == MAX_OCTDEPTH || csvoxel.sd > 100000.0)
             // int maxd = MAX_OCTDEPTH ;
 
-            int maxd = MAX_OCTDEPTH - int(distance(stack[depth].suborigin[i[depth]], campos)/5000.0);
-            if(maxd < 4) maxd = 4;
+            int maxd = MAX_OCTDEPTH - int(distance(stack[depth].suborigin[i[depth]], campos)*0.00004);
+            if(maxd < 6) maxd = 6;
 
             if(depth >= maxd)
             {   
@@ -514,6 +515,7 @@ Surface trace(vec3 origin, float size, int depth)
 
     return voxel;
 }
+
 vec3 rgb2hsv(vec3 c)
 {
     vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
@@ -567,126 +569,34 @@ mat3 rotationAxisAngle( vec3 v, float angle )
 void main()
 {
     frag_color = vec4(0.0);
-
-    // if(noise1(gl_FragCoord.x) >= 0.0)
-    // {
-    //     frag_color = vec4(1.0);
-    //     return;
-    // }
-
-    // if(int(iTime*1000.0)%2 == 0)
-    // {
-    //     if(int(gl_FragCoord.x)%2 == 0)
-    //         discard;
-
-    //     if(int(gl_FragCoord.y)%2 == 0)
-    //         discard;
-    // }
-    // else
-    // {
-    //     if(int(gl_FragCoord.x)%2 != 0)
-    //         discard;
-
-    //     if(int(gl_FragCoord.y)%2 != 0)
-    //         discard; 
-    // }
-
     uv = (gl_FragCoord.xy-iResolution.xy*0.5)/iResolution.xx;
-    // // vec2 mouseUV = iMouse.xy/iResolution.xy; // Range: <0, 1>
-    // vec2 mouseUV = vec2(0.5, 0.75);
-    // // mouseUV.x -= iTime*0.1;
-    // // mouseUV.y = iTime*0.1;
-    vec2 mouseUV = MousePositon/iResolution.xy;
     vec4 backgroundColor = vec4(101.f, 194.f, 245.f, 256.f)/256.f;
-
-    // vec3 col = vec3(0);
-    // vec3 lp = vec3(0, 0, 0); // lookat point (aka camera target)
-    // // lp.x = cos(iTime)*5000.0;
-    // // lp.z = sin(iTime)*5000.0;
-    // vec3 ro = vec3(3, 10, 10); // ray origin that represents camera position
-
-    // // float cameraRadius = 1.0;
-    // float cameraRadius = 7000.0;
-    // ro.yz = ro.yz * cameraRadius * rotate2d(mix(PI/2., 0., mouseUV.y));
-    // ro.xz = ro.xz * rotate2d(mix(-PI, PI, mouseUV.x)) + vec2(lp.x, lp.z);
-
-    // vec3 rd = camera(ro, lp) * normalize(vec3(uv, -1)); // ray direction
-
-    // ro.zy = ro.yz;
-    // rd.zy = rd.yz;
-
-    // // campos.x = cos(iTime)*50000.0;
-    // campos += ro;
-    // camdir = rd;
-    // icamdir = 1.0/camdir;
-
-
-
-    // mouseUV = vec2(981.0, 296.0)/iResolution.xy;
-
     uv += 0.5;
-    mouseUV *= 2.0;
+
+    // mouseUV *= 2.0;
     vec2 uv = gl_FragCoord.xy / iResolution.xy;
     // https://www.shadertoy.com/view/4sj3WK
 	// Camera (My own attempt of preparing a camera. Use at your own risk!)
 	vec3 ro = vec3( 50000.0, 0.0, 0.0); // origin
-    // vec3 ro = CameraPositon;
-
-
-	float cTheta = mouseUV.y*PI; // polar theta of direction
-    float cPhi = mouseUV.x*PI; // polar phi of direaction
-
-
-	// float cAlpha = 0.1*PI*cos(iTime); // tilt
-    float cAlpha = 0.0;
-	//float FOV = 1.0; // smaller number wider view and vice versa.
-	// direct the camera at given latitude and longitude
-	vec3 cDir, cU, cV;
+    float cTheta = polardir.x;
+    float cPhi   = polardir.y;
+    vec3 cDir, cU, cV;
 	findUV(cTheta, cPhi, cDir, cU, cV);	
-	// // Tilt the camera
-	mat3 tilt = rotationAxisAngle(cDir, cAlpha);
+
+	// Tilt the camera
+    float cAlpha = 0.0;
+	mat3 tilt = rotationAxisAngle(CameraDirection, cAlpha);
 	cU = tilt*cU; // just rotate camera U and V. Yay, tt works!
 	cV = tilt*cV;	
 	vec2 scan = (-1.0+2.0*uv)*vec2(1.78, 1.0); // magical numbers
-	vec3 rd = normalize(scan.x * cU + scan.y * cV + FOV*cDir);
-	//vec3 rd = normalize(vec3( (-1.0+2.0*uv)*vec2(1.78, 1.0), -1.0));
-
-
-
-
-
-
-    // https://www.shadertoy.com/view/ld23DV
-	// vec2 p = (2.0*gl_FragCoord.xy-iResolution.xy) / iResolution.y;
-    // vec2 p = (gl_FragCoord.xy-iResolution.xy*0.5)/iResolution.xx;
-
-    //  // camera movement	
-	// float an = 0.4*iTime;
-	// // vec3 ro = vec3( 2.5*cos(an), 1.0, 2.5*sin(an) );
-    // vec3 ro = CameraPositon;
-    // // vec3 ro = vec3(0.0);
-    // vec3 ta = vec3( 0.0, 0.8, 0.0 );
-    // // vec3 ta = CameraPositon;
-
-    // // camera matrix
-    // vec3 ww = normalize( ta - ro );
-    // vec3 uu = normalize( cross(ww,vec3(0.0,1.0,0.0) ) );
-    // vec3 vv = normalize( cross(uu,ww));
-	// // create view ray
-	// vec3 rd = normalize( p.x*uu + p.y*vv + 2.0*ww );
+	vec3 rd = normalize(scan.x * cU + scan.y * cV + FOV*CameraDirection);
 
     campos += ro;
     camdir = rd;
     icamdir = 1.0/camdir;
 
-
-
-
-
-
-
     vec3 worldorigin = vec3(0.0);
-    float worldsize = 150000.0;
+    float worldsize = 450000.0;
 
     // check if the ray is out of the world
     Surface world = getvox(worldorigin, worldsize*0.5);

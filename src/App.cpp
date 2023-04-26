@@ -6,7 +6,7 @@
 
 //https://antongerdelan.net/opengl/hellotriangle.html
 
-App::App(GLFWwindow* window) : window(window)
+App::App(GLFWwindow* window) : window(window), camera(&window)
 {
     timestart = Get_time_ms();
 }
@@ -16,41 +16,47 @@ void App::mainInput()
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         state = quit;
     
-    float camspeed = 30.0;
+    float camspeed = 4.0;
     if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
         camspeed *= 10.0;
 
+    vec3<float> velocity(0.0);
+
     if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {
-        campos.y += camspeed;
+        velocity.x += camspeed;
     }
     if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
     {
-        campos.y -= camspeed;
+        velocity.x -= camspeed;
     }
     if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
     {
-        campos.x += camspeed;
+        velocity.z -= camspeed;
     }
     if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
     {
-        campos.x -= camspeed;
+        velocity.z += camspeed;
     }
     if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
     {
-        campos.z += camspeed;
+        velocity.y += camspeed;
     }
     if(glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
     {
-        campos.z -= camspeed;
+        velocity.y -= camspeed;
     }
+
+    camera.move(velocity);
+
     if(glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_PRESS)
     {
-        FOV -= 0.1;
+        camera.add_FOV(-0.1);
     }
+
     if(glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS)
     {
-        FOV += 0.1;
+        camera.add_FOV(0.1);
     }
 }
 
@@ -61,7 +67,6 @@ void App::mainloop()
     GLFWmonitor* monitor = glfwGetPrimaryMonitor();
     const GLFWvidmode* mode = glfwGetVideoMode(monitor);
     glfwSetWindowPos(window, (mode->width - 1920) / 2, (mode->height - 1080) / 2);
-
 
     /// CREATINHG QUAD TO COVER ALL THE SCREEN
     float points[] = {
@@ -106,13 +111,13 @@ void App::mainloop()
     World[1].lod_surface.info  = 0;
     World[0].lod_surface.color = {0xc7, 0x21, 0x8b};
     World[0].lod_surface.info  = 0;
-    for(int i = 0; i < 6; i++)
+    for(int i = 0; i < 7; i++)
     // if(i == 0 || i == 1 || i == 4 || i == 5)
     {
         World[0].childs[i].ptr.pos = 1;
         World[0].childs[i].ptr.oct_chunk_pos = 0;
     }
-    for(int i = 0; i < 6; i++)
+    for(int i = 0; i < 7; i++)
     {   
         World[1].childs[i].ptr.pos = 1;
         World[1].childs[i].ptr.oct_chunk_pos = 0;
@@ -175,6 +180,8 @@ void App::mainloop()
     /// MAIN LOOP
     while(state != quit)
     {
+        glfwPollEvents();
+
         mainInput();
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -182,19 +189,17 @@ void App::mainloop()
         
         test.activate();
         glBindVertexArray(vao);
+
+        glUniform1f(1, (Get_time_ms()-timestart)*1.0/1000.0);
+        glUniform3fv(2, 1, (const GLfloat *)camera.get_position());
+        glUniform3fv(3, 1, (const GLfloat *)camera.get_updated_direction());
+        glUniform2fv(4, 1, (const GLfloat *)camera.get_polar_direciton());
+        glUniform1f(5, camera.get_FOV());
+        // std::cout << mouse[0] << "\t" << mouse[1] << "\n";
+
         // draw points 0-3 from the currently bound VAO with current in-use shader
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
-        glUniform1f(1, (Get_time_ms()-timestart)*1.0/1000.0);
-        glUniform3fv(2, 1, (const GLfloat *)&campos);
-        double xpos, ypos;
-        glfwGetCursorPos(window, &xpos, &ypos);
-        float mouse[2] = {xpos, ypos};
-        glUniform2fv(3, 1, mouse);
-        glUniform1f(4, FOV);
-        // std::cout << mouse[0] << "\t" << mouse[1] << "\n";
-
-        glfwPollEvents();
         glfwSwapBuffers(window);
     }
 

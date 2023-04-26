@@ -4,7 +4,6 @@
 #include <string>
 #include <chrono>
 
-
 /// TERMINAL
 const std::string TERMINAL_ERROR = "\033[91m";
 const std::string TERMINAL_INFO  = "\033[94m";

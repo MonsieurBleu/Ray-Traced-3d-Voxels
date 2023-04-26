@@ -15,9 +15,20 @@ struct vec3
         x = (T)v.x; y = (T)v.y; z = (T)v.z;
         return *this;
     };
-
-
 };
+
+// Compute the cross value between 2 vectors 
+// Use the 0 origin formula
+// cx = aybz − azby
+// cy = azbx − axbz
+// cz = axby − aybx
+template <typename T, typename O>
+vec3<T> ocross(const vec3<T> &a, const vec3<O> &b)
+{
+    return vec3(a.y*b.z - a.z*b.y, a.z*b.x - a.x*b.z, a.x*b.y - a.y*b.x);
+}
+
+
 
 template <typename T>
 std::ostream& operator<<(std::ostream& os, const vec3<T>& u)
