@@ -38,7 +38,7 @@ vec3<T> operator-(vec3<T> u, const vec3<O> &v)
     u.x -= (T)v.x; u.y -= (T)v.y; u.z -= (T)v.z; return u;
 };
 
-template <typename T>
+template <typename T, typename O>
 vec3<T> operator*(vec3<T> u, const vec3<O> &v)
 {
     u.x *= (T)v.x; u.y *= (T)v.y; u.z *= (T)v.z; return u;
