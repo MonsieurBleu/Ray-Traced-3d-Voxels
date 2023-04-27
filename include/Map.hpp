@@ -9,10 +9,10 @@ class Map
 {
     private :
 
-        static_octree_buffer chunks[OCTREE_CHUNK_NB];
 
 
     public :
+        static_octree_buffer chunks[OCTREE_CHUNK_NB];
 
         OctNode& operator[](int);
         const OctNode& operator[](int) const;

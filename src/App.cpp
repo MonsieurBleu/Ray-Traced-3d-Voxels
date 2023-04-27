@@ -161,7 +161,19 @@ void App::mainloop()
     //     World[4].childs[i].surface.info  = LEAF_LIMIT8;
     // }
 
+
+
     World.send_to_gpu();
+    
+    World[1].childs[6].ptr.fullpos = 0;
+    World[1].childs[5].ptr.fullpos = 0;
+
+    std::cout << "test : sending " << 4096*sizeof(OctNode) << " byte to an ssbo ";
+    startbenchrono();
+    glNamedBufferSubData(World.chunks[0].ssbo, 0, 4*sizeof(OctNode), World.chunks->nodes);
+    endbenchrono();
+
+    // glBufferSubData(GL_SHADER_STORAGE_BUFFER, offset, size, data); //to update partially
 
     /// MAIN LOOP
     while(state != quit)

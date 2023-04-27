@@ -74,7 +74,7 @@ struct static_octree_buffer
     int uinterval_beg = 0; // position of the start of the update interval
     int uinterval_end = 0; // position of the end of the update interval
 
-    int ssbo;
+    uint32_t ssbo;
 
     ~static_octree_buffer();
 

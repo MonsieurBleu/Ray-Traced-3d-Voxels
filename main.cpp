@@ -5,7 +5,7 @@
 
 #include <App.hpp>
 #include <Utils.hpp>
-
+#include <GLutils.hpp>
 #include <Octree.hpp>
 
 int unit_test()
@@ -67,6 +67,9 @@ int main()
     // start GLEW extension handler
     glewExperimental = GL_TRUE;
     glewInit();
+
+    glEnable( GL_DEBUG_OUTPUT );
+    glDebugMessageCallback(MessageCallback, 0);
 
     // get version info
     const GLubyte* renderer = glGetString(GL_RENDERER); // get renderer string

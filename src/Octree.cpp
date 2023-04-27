@@ -43,12 +43,12 @@ void static_octree_buffer::send_to_gpu()
     uinterval_beg = 0;
     uinterval_end = 0;
 
-    GLuint ssbo = 0;
+    ssbo = 0;
     glGenBuffers(1, &ssbo);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
 
     std::cout << TERMINAL_OK 
-    << "Sending SSBO of size " << OCTREE_CHUNK_SIZE/1000000.0 << " Mb to the GPU";
+    << "Sending SSBO of size " << OCTREE_CHUNK_SIZEB/1000000.0 << " Mb to the GPU";
     startbenchrono();
 
     glBufferData(GL_SHADER_STORAGE_BUFFER, OCTREE_CHUNK_SIZEB, nodes, GL_DYNAMIC_COPY);
