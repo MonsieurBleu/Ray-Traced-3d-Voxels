@@ -58,6 +58,11 @@ void App::mainInput()
     {
         camera.add_FOV(0.1);
     }
+
+    if(glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS)
+    {
+        // glBufferSubData(GL_SHADER_STORAGE_BUFFER, offset, size, data); //to update partially
+    }
 }
 
 
@@ -114,15 +119,14 @@ void App::mainloop()
     for(int i = 0; i < 7; i++)
     // if(i == 0 || i == 1 || i == 4 || i == 5)
     {
-        World[0].childs[i].ptr.pos = 1;
-        World[0].childs[i].ptr.oct_chunk_pos = 0;
+        World[0].childs[i].ptr.fullpos = 1;
+        World[0].childs[i].ptr.set_chunk_id(0);
     }
     for(int i = 0; i < 7; i++)
     {   
-        World[1].childs[i].ptr.pos = 1;
-        World[1].childs[i].ptr.oct_chunk_pos = 0;
+        World[1].childs[i].ptr.fullpos = 1;
+        World[1].childs[i].ptr.set_chunk_id(0);
     }
-
 
     // // Generating depth test
     // for(int i = 0; i < 6; i++)
@@ -166,10 +170,15 @@ void App::mainloop()
     GLuint ssbo = 0;
     glGenBuffers(1, &ssbo);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+
+    std::cout << TERMINAL_INFO << "Sending SSBO of size " << OCTREE_CHUNK_SIZE/1000000.0 << " mega byte to the GPU";
+    startbenchrono();
+
     glBufferData(GL_SHADER_STORAGE_BUFFER, OCTREE_CHUNK_SIZEB, World, GL_DYNAMIC_COPY);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, ssbo);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
+    endbenchrono();
 
     // GLuint block_index = 0;
     // block_index = glGetProgramResourceIndex(test.get_program(), GL_SHADER_STORAGE_BLOCK, "shader_data");

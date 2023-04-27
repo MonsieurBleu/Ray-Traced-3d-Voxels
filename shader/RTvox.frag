@@ -16,18 +16,19 @@ struct OctNode
     int  parent;
 };
 
-#define OCTREE_CHUNK_SIZE 0xFFFF
+#define OCTREE_CHUNK_SIZE 0xFFFFFF
 // layout (std430, binding=2) readonly restrict buffer shader_data
 layout (std430, binding=2) readonly buffer shader_data
 {
-    OctNode World[OCTREE_CHUNK_SIZE];
+    // OctNode World[OCTREE_CHUNK_SIZE];
+    OctNode World[];
 };
 // OctNode World[32];
 
 out vec4 frag_color;
 
 #define PI 3.14159265359
-#define MAXSD 800000.0
+#define MAXSD 900000.0
 #define voxside_x 1
 #define voxside_y 2
 #define voxside_z 3

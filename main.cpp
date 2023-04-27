@@ -6,6 +6,8 @@
 #include <App.hpp>
 #include <Utils.hpp>
 
+#include <Octree.hpp>
+
 int unit_test()
 {
     vec3<uint64_t>   u(5);
@@ -32,7 +34,8 @@ int unit_test()
 int main()
 {
     // unit_test();
-    std::cout << sizeof(vec3<char>) << "\n";
+    // std::cout << sizeof(Voxel) << "\n";
+    // return 0;
 
     atexit(checkHeap);
 

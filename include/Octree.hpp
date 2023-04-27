@@ -3,9 +3,9 @@
 
 #include <iostream>
 
-#define OCTREE_CHUNK_SIZE 0xFFFF
-#define LEAF_LIMIT32 0x80000000;
-#define LEAF_LIMIT8 0x80;
+#define OCTREE_CHUNK_SIZE 0xFFFFFF
+#define LEAF_LIMIT32 0x80000000
+#define LEAF_LIMIT8 0x80
 
 struct ColorRGB
 {
@@ -23,10 +23,26 @@ struct VoxelSurface
     uint8_t info;
 };
 
+#define INCHUNK_POS_MASK 0x00FFFFFF
+#define CHUNK_ID_MASK    0xFF000000 
+
 struct OctPointer
 {
-    uint16_t pos;
-    uint16_t oct_chunk_pos;
+    uint32_t fullpos;
+    
+    uint32_t inchunk_pos()
+    {
+        return fullpos & INCHUNK_POS_MASK;
+    };
+    uint32_t chunk_id()
+    {
+        return fullpos & CHUNK_ID_MASK;
+    };
+    void set_chunk_id(uint8_t id)
+    {
+        fullpos &= INCHUNK_POS_MASK;
+        fullpos |= id<<24;
+    }
 };
 
 union Voxel
@@ -43,5 +59,33 @@ struct OctNode
 };
 
 #define OCTREE_CHUNK_SIZEB sizeof(OctNode)*OCTREE_CHUNK_SIZE
+
+struct static_octree_buffer
+{
+    OctNode *nodes = NULL;
+
+    int chunk_id = 0;
+
+    int size = 0;
+    int bfrist_pos = 0; // buffer first empty position 
+    bool is_full = false;
+
+    int uinterval_beg = 0; // position of the start of the update interval
+    int uinterval_end = 0; // position of the end of the update interval
+
+    int ssbo;
+
+    ~static_octree_buffer();
+
+    void alloc();
+    void free();
+
+    int  add(VoxelSurface lod_surface);
+    void remove(int pos);
+    void send_to_gpu();
+    void send_update();
+};
+
+
 
 #endif
