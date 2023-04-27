@@ -106,12 +106,6 @@ void App::mainloop()
     int winsize[2] = {1920, 1080};
     glUniform2iv(0, 1, winsize);
 
-
-    /// CREATING AN SSBO
-    OctNode *World = new OctNode[OCTREE_CHUNK_SIZE];
-    memset(World, 0, OCTREE_CHUNK_SIZEB);
-
-    // // Generating a cool looking fractal with minimal memory cost
     World[1].lod_surface.color = {0xc7, 0x21, 0x8b};
     World[1].lod_surface.info  = 0;
     World[0].lod_surface.color = {0xc7, 0x21, 0x8b};
@@ -167,24 +161,7 @@ void App::mainloop()
     //     World[4].childs[i].surface.info  = LEAF_LIMIT8;
     // }
 
-    GLuint ssbo = 0;
-    glGenBuffers(1, &ssbo);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
-
-    std::cout << TERMINAL_INFO << "Sending SSBO of size " << OCTREE_CHUNK_SIZE/1000000.0 << " mega byte to the GPU";
-    startbenchrono();
-
-    glBufferData(GL_SHADER_STORAGE_BUFFER, OCTREE_CHUNK_SIZEB, World, GL_DYNAMIC_COPY);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, ssbo);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-
-    endbenchrono();
-
-    // GLuint block_index = 0;
-    // block_index = glGetProgramResourceIndex(test.get_program(), GL_SHADER_STORAGE_BLOCK, "shader_data");
-    // GLuint ssbo_binding_point_index = 2;
-    // glShaderStorageBlockBinding(test.get_program(), block_index, ssbo_binding_point_index);
-
+    World.send_to_gpu();
 
     /// MAIN LOOP
     while(state != quit)
@@ -211,6 +188,4 @@ void App::mainloop()
 
         glfwSwapBuffers(window);
     }
-
-    delete World;
 }

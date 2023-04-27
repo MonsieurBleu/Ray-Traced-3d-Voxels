@@ -7,6 +7,10 @@
 #define GLFW_DLL
 #include <GLFW/glfw3.h>
 
+
+#define OCTREE_BINDING_BASE_LOCATION 2
+
+
 enum ShaderError
 {
     ShaderOk,

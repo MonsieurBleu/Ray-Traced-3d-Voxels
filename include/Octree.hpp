@@ -3,6 +3,7 @@
 
 #include <iostream>
 
+
 #define OCTREE_CHUNK_SIZE 0xFFFFFF
 #define LEAF_LIMIT32 0x80000000
 #define LEAF_LIMIT8 0x80
@@ -77,13 +78,15 @@ struct static_octree_buffer
 
     ~static_octree_buffer();
 
+    void set_id(int id) {chunk_id = id;};
+
     void alloc();
     void free();
 
-    int  add(VoxelSurface lod_surface);
-    void remove(int pos);
     void send_to_gpu();
     void send_update();
+    int  add(VoxelSurface lod_surface);
+    void remove(int pos);
 };
 
 
