@@ -5,12 +5,14 @@
 #include <chrono>
 
 /// TERMINAL
-const std::string TERMINAL_ERROR = "\033[91m";
-const std::string TERMINAL_INFO  = "\033[94m";
-const std::string TERMINAL_OK    = "\033[92m";
-const std::string TERMINAL_RESET = "\033[0m";
-const std::string TERMINAL_TIMER = "\033[93m";
+const std::string TERMINAL_ERROR    = "\e[1;31m"; //"\033[91m";
+const std::string TERMINAL_INFO     = "\033[94m";
+const std::string TERMINAL_OK       = "\033[92m";
+const std::string TERMINAL_RESET    = "\033[0m";
+const std::string TERMINAL_TIMER    = "\033[93m";
 const std::string TERMINAL_FILENAME = "\033[95m";
+const std::string TERMINAL_WARNING  = "\e[38;5;208m";
+const std::string TERMINAL_NOTIF    = "\e[1;36m";
 
 
 /// FILES

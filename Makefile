@@ -31,3 +31,6 @@ PHONY : clean
 
 clean : 
 	$(DEL_win) $(EXEC) obj\*.o
+
+countlines :
+	find ./ -type f \( -iname \*.cpp -o -iname \*.hpp -o -iname \*.frag -o -iname \*.vert -o -iname \*.geom \) | sed 's/.*/"&"/' | xargs  wc -l

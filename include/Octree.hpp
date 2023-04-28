@@ -4,7 +4,7 @@
 #include <iostream>
 
 
-#define OCTREE_CHUNK_SIZE 0xFFFFFF
+#define OCTREE_CHUNK_SIZE 0xFFFFFF/2
 #define LEAF_LIMIT32 0x80000000
 #define LEAF_LIMIT8 0x80
 

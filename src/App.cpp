@@ -168,8 +168,6 @@ void App::mainloop()
     World[1].childs[6].ptr.fullpos = 0;
     World[1].childs[5].ptr.fullpos = 0;
 
-    // World[15].childs[5].ptr.fullpos = World(25).childs[5].ptr.fullpos;
-
     World.send_update();
 
     // glBufferSubData(GL_SHADER_STORAGE_BUFFER, offset, size, data); //to update partially
