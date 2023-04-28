@@ -5,7 +5,6 @@
 
 #include <Camera.hpp>
 #include <Shader.hpp>
-
 #include <Map.hpp>
 
 struct fCoord3D

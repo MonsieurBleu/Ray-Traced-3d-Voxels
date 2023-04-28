@@ -106,21 +106,21 @@ void App::mainloop()
     int winsize[2] = {1920, 1080};
     glUniform2iv(0, 1, winsize);
 
-    World[1].lod_surface.color = {0xc7, 0x21, 0x8b};
-    World[1].lod_surface.info  = 0;
-    World[0].lod_surface.color = {0xc7, 0x21, 0x8b};
-    World[0].lod_surface.info  = 0;
-    for(int i = 0; i < 7; i++)
-    // if(i == 0 || i == 1 || i == 4 || i == 5)
-    {
-        World[0].childs[i].ptr.fullpos = 1;
-        World[0].childs[i].ptr.set_chunk_id(0);
-    }
-    for(int i = 0; i < 7; i++)
-    {   
-        World[1].childs[i].ptr.fullpos = 1;
-        World[1].childs[i].ptr.set_chunk_id(0);
-    }
+    // World[1].lod_surface.color = {0xc7, 0x21, 0x8b};
+    // World[1].lod_surface.info  = 0;
+    // World[0].lod_surface.color = {0xc7, 0x21, 0x8b};
+    // World[0].lod_surface.info  = 0;
+    // for(int i = 0; i < 7; i++)
+    // // if(i == 0 || i == 1 || i == 4 || i == 5)
+    // {
+    //     World[0].childs[i].ptr.fullpos = 1;
+    //     World[0].childs[i].ptr.set_chunk_id(0);
+    // }
+    // for(int i = 0; i < 7; i++)
+    // {   
+    //     World[1].childs[i].ptr.fullpos = 1;
+    //     World[1].childs[i].ptr.set_chunk_id(0);
+    // }
 
     // // Generating depth test
     // for(int i = 0; i < 6; i++)
@@ -161,16 +161,22 @@ void App::mainloop()
     //     World[4].childs[i].surface.info  = LEAF_LIMIT8;
     // }
 
+    // OctNode &node = World[0];
+    // node.childs[0].surface = {0xe7, 0x4c, 0x3c, LEAF_LIMIT8};
 
+    VoxelSurface surface = {0xe7, 0x4c, 0x3c, LEAF_LIMIT8};
+
+    World[0].lod_surface.color.r = 255;
+    // World[0].childs[3].ptr.fullpos = 1;
+    // World[1].parent.ptr.fullpos = 0;
+
+    vec3<int> position = vec3<int>(0, 0, 0);
+    vec3<int> size = vec3<int>(1024, 700, 1024);
+
+    World.draw_volume(surface,position - size/2, position + size/2);
 
     World.send_to_gpu();
-    
-    World[1].childs[6].ptr.fullpos = 0;
-    World[1].childs[5].ptr.fullpos = 0;
-
-    World.send_update();
-
-    // glBufferSubData(GL_SHADER_STORAGE_BUFFER, offset, size, data); //to update partially
+    // World.send_update();
 
     /// MAIN LOOP
     while(state != quit)

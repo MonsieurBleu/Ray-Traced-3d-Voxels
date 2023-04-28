@@ -30,6 +30,9 @@ struct VoxelSurface
 struct OctPointer
 {
     uint32_t fullpos;
+
+    OctPointer(){fullpos = 0;};
+    OctPointer(uint32_t i) : fullpos(i) {};
     
     uint32_t inchunk_pos()
     {
@@ -46,14 +49,18 @@ struct OctPointer
     }
 };
 
+const OctPointer WORLD_OPTR(0);
+
 union Voxel
 {
+    Voxel(){};
     VoxelSurface surface;
     OctPointer   ptr;
 };
 
 struct OctNode
 {
+    OctNode(){};
     VoxelSurface lod_surface;
     Voxel childs[8];
     Voxel parent;
@@ -75,7 +82,7 @@ struct static_octree_buffer
     int chunk_id = 0;
 
     int size = 0;
-    int bfrist_pos = 0; // buffer first empty position 
+    int bfrist_pos = OCTREE_CHUNK_SIZE; // buffer first empty position 
     bool is_full = false;
 
     int uinterval_beg = OCTREE_CHUNK_SIZE; // position of the start of the update interval

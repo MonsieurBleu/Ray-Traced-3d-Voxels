@@ -20,7 +20,7 @@ void static_octree_buffer::alloc()
     }
     
     nodes = new OctNode[OCTREE_CHUNK_SIZE];
-    memset(nodes, 0, OCTREE_CHUNK_SIZEB);
+    memset((void*)nodes, 0, OCTREE_CHUNK_SIZEB);
 }
 
 void static_octree_buffer::free()
@@ -102,7 +102,7 @@ Octnode_ret static_octree_buffer::add(VoxelSurface lod_surface)
     }    
     else
     {
-        for(pos = 0; pos < OCTREE_CHUNK_SIZE; pos++)
+        for(; pos < OCTREE_CHUNK_SIZE; pos++)
         {
             if(*(uint32_t *)&nodes[pos].lod_surface == 0)
                 break;
@@ -123,7 +123,7 @@ Octnode_ret static_octree_buffer::add(VoxelSurface lod_surface)
 
 void static_octree_buffer::remove(int pos)
 {
-    memset(&nodes[pos], 0, sizeof(OctNode));
+    memset((void*)&nodes[pos], 0, sizeof(OctNode));
 
     if(pos < uinterval_beg) uinterval_beg = pos;
     if(pos > uinterval_end) uinterval_end = pos;

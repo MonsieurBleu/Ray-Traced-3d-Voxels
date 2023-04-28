@@ -1,6 +1,7 @@
 #version 450
 
-// precision lowp float;
+#define GETVOX_VISUALIZATION
+// #define DO_LODS
 
 layout (location = 0) uniform ivec2 iResolution;
 layout (location = 1) uniform float iTime;
@@ -32,7 +33,7 @@ out vec4 frag_color;
 #define voxside_x 1
 #define voxside_y 2
 #define voxside_z 3
-#define MAX_OCTDEPTH 10
+#define MAX_OCTDEPTH 9
 
 const uint LEAF_LIMIT = uint(0x80000000);
 
@@ -55,9 +56,6 @@ struct trace_recstat
     int nodes[4];
     float size;
     int curNode;
-    // OctNode node;
-
-    //lowp int sorted_id[8];
 };
 
 trace_recstat stack[MAX_OCTDEPTH];
@@ -75,11 +73,15 @@ trace_recstat stack[MAX_OCTDEPTH];
 //         {{{0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}}, {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}, {0, 0, 0, 0}, 0.0, 0}
 //     };
 
+#ifdef GETVOX_VISUALIZATION
 uint getvoxcnt = 0;
+#endif
 
 Surface getvox(const vec3 pos, const float hsize)
 {
+    #ifdef GETVOX_VISUALIZATION
     getvoxcnt ++;
+    #endif
 
     vec3 maxp = pos + hsize;
     vec3 minp = pos - hsize;
@@ -107,8 +109,6 @@ Surface getvox(const vec3 pos, const float hsize)
     tmin = max(tmin, min(tz1, tz2));
     tmax = min(tmax, max(tz1, tz2));
 
-
-
     if(tmax >= tmin && tmax > 0.0)
         return_val.sd = tmin;
     else 
@@ -128,7 +128,10 @@ Surface getvox(const vec3 pos, const float hsize)
 
 Surface getvox_old2(const vec3 pos, const float size)
 {
+    #ifdef GETVOX_VISUALIZATION
     getvoxcnt ++;
+    #endif
+
     vec3 maxp = pos + size*0.5;
     vec3 minp = pos - size*0.5;
     vec3 cpicd = -campos*icamdir;
@@ -480,8 +483,17 @@ Surface trace(vec3 origin, float size, int depth)
             // if(depth == MAX_OCTDEPTH || csvoxel.sd > 100000.0)
             // int maxd = MAX_OCTDEPTH ;
 
+            #ifdef DO_LODS
+            
             int maxd = MAX_OCTDEPTH - int(distance(stack[depth].suborigin[i[depth]], campos)*0.00004);
-            if(maxd < 6) maxd = 6;
+            if(maxd < 0) maxd = 0;
+            
+            #else
+
+            int maxd = MAX_OCTDEPTH ;
+
+            #endif
+
 
             if(depth >= maxd)
             {   
@@ -611,24 +623,25 @@ void main()
 
     if(voxel.sd < MAXSD)
     {
-        //// getting voxel color
-        // voxel.col = uint(voxel.sd);
-        // uint r = (voxel.col>>uint(16))%uint(256);
-        // uint g = (voxel.col>>uint(8))%uint(256);
-        // uint b = (voxel.col)%uint(256);
-        // vec3 vcol = vec3(float(r), float(g), float(b))/256.0;
-
         //// cool depth visualisation
         // r = uint(voxel.sd/512.0);
         // g = 175;
         // b = 175;
         // vec3 vcol = hsv2rgb(vec3(float(r), float(g), float(b))/256.0);
 
+        #ifdef GETVOX_VISUALIZATION
         //// getvoxls calls vizualisation
         uint r = getvoxcnt;
         uint g = 175;
         uint b = 175;
         vec3 vcol = hsv2rgb(vec3(float(r), float(g), float(b))/256.0);
+        #else
+        //// getting voxel color
+        uint r = (voxel.col>>uint(16))%uint(256);
+        uint g = (voxel.col>>uint(8))%uint(256);
+        uint b = (voxel.col)%uint(256);
+        vec3 vcol = vec3(float(r), float(g), float(b))/256.0;
+        #endif
 
         frag_color.rgb = vcol;
 
@@ -643,12 +656,15 @@ void main()
     }
     else
     {
+        frag_color = backgroundColor;
+        
+        #ifdef GETVOX_VISUALIZATION
         uint r = getvoxcnt;
         uint g = 175;
         uint b = 175;
         vec3 vcol = hsv2rgb(vec3(float(r), float(g), float(b))/256.0);
         frag_color.rgb = vcol;
-        // frag_color = backgroundColor;
+        #endif
     }
 
     // campos += camdir*voxel.sd;
@@ -659,17 +675,3 @@ void main()
 
     frag_color.a = 1.0;
 }
-
-///// BENCH
-// 11 : 13 ms
-// 11 : 95 fps 10-11 ms
-// 11 : 100 fps 9-10 ms
-// 11 : 144 fps 7 ms => cap atteint
-
-// 13 : 102 fps 10-9 ms
-
-// 16 : 47fps 20-21ms 
-// 16 : 56fps 18ms 
-// 16 : 144fps 7ms 
-
-// 25 : 80fps 13ms

@@ -41,6 +41,6 @@ void Camera::move(vec3<float> velocity)
 	vec3<float> v(sin(thV)*cos(phV), cos(thV), sin(thV)*sin(phV));
 
     position = position + direction * velocity.x * velmult 
-                        + ocross(v, direction) * velocity.z * velmult
+                        + cross(v, direction) * velocity.z * velmult
                         + vec3<float>(0.f, velocity.y*velmult, 0.f);
 }
