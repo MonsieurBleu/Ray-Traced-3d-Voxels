@@ -114,13 +114,13 @@ Surface getvox(const vec3 pos, const float hsize)
     else 
         return return_val;
     
-    if(return_val.sd == tx1 ||return_val.sd == tx2)
+    if(return_val.sd == tx1 || return_val.sd == tx2)
         return_val.side = voxside_x;
 
-    if(return_val.sd == ty1 ||return_val.sd == ty2)
+    if(return_val.sd == ty1 || return_val.sd == ty2)
         return_val.side = voxside_y;
 
-    if(return_val.sd == tz1 ||return_val.sd == tz2)
+    if(return_val.sd == tz1 || return_val.sd == tz2)
         return_val.side = voxside_z;
 
     return return_val;

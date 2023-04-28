@@ -92,6 +92,7 @@ ShaderError ShaderProgram::CompileAndLink()
     ShaderError serrv = ShaderOk;
     ShaderError serrg = ShaderOk;
 
+
     if(!vert.get_Path().empty())
         serrv = vert.refresh();
 
@@ -110,7 +111,7 @@ ShaderError ShaderProgram::CompileAndLink()
     if(!vert.get_Path().empty())
         glAttachShader(program, vert.get_shader());
     
-    if(!vert.get_Path().empty())
+    if(!geom.get_Path().empty())
         glAttachShader(program, geom.get_shader());
     
     glLinkProgram(program);
@@ -144,8 +145,8 @@ ShaderError ShaderProgram::CompileAndLink()
     endbenchrono();
 
     glDeleteShader(frag.get_shader());
-    glDeleteShader(vert.get_shader());
-    glDeleteShader(geom.get_shader());
+    if(!vert.get_Path().empty()) glDeleteShader(vert.get_shader());
+    if(!geom.get_Path().empty()) glDeleteShader(geom.get_shader());
 
     return ShaderOk;
 }

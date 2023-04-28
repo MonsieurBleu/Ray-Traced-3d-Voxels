@@ -61,6 +61,13 @@ struct OctNode
 
 #define OCTREE_CHUNK_SIZEB sizeof(OctNode)*OCTREE_CHUNK_SIZE
 
+struct Octnode_ret
+{
+    int pos;
+    OctNode* node;
+};
+
+
 struct static_octree_buffer
 {
     OctNode *nodes = NULL;
@@ -71,8 +78,8 @@ struct static_octree_buffer
     int bfrist_pos = 0; // buffer first empty position 
     bool is_full = false;
 
-    int uinterval_beg = 0; // position of the start of the update interval
-    int uinterval_end = 0; // position of the end of the update interval
+    int uinterval_beg = OCTREE_CHUNK_SIZE; // position of the start of the update interval
+    int uinterval_end = -1; // position of the end of the update interval
 
     uint32_t ssbo;
 
@@ -85,7 +92,9 @@ struct static_octree_buffer
 
     void send_to_gpu();
     void send_update();
-    int  add(VoxelSurface lod_surface);
+
+    Octnode_ret add(VoxelSurface lod_surface);
+
     void remove(int pos);
 };
 

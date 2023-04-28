@@ -48,6 +48,8 @@
         "fstream": "cpp",
         "chrono": "cpp",
         "ctime": "cpp",
-        "ratio": "cpp"
+        "ratio": "cpp",
+        "complex": "cpp",
+        "sstream": "cpp"
     }
 }

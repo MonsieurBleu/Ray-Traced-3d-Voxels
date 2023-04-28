@@ -16,7 +16,7 @@ void App::mainInput()
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         state = quit;
     
-    float camspeed = 4.0;
+    float camspeed = 15.0;
     if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
         camspeed *= 10.0;
 
@@ -168,10 +168,9 @@ void App::mainloop()
     World[1].childs[6].ptr.fullpos = 0;
     World[1].childs[5].ptr.fullpos = 0;
 
-    std::cout << "test : sending " << 4096*sizeof(OctNode) << " byte to an ssbo ";
-    startbenchrono();
-    glNamedBufferSubData(World.chunks[0].ssbo, 0, 4*sizeof(OctNode), World.chunks->nodes);
-    endbenchrono();
+    // World[15].childs[5].ptr.fullpos = World(25).childs[5].ptr.fullpos;
+
+    World.send_update();
 
     // glBufferSubData(GL_SHADER_STORAGE_BUFFER, offset, size, data); //to update partially
 
