@@ -115,7 +115,7 @@ void Map::draw_volume(VoxelSurface surface, vec3<int> vmin, vec3<int> vmax, OctP
                     this->operator[](node_id.fullpos).childs[i].ptr.fullpos = pos.pos;
                 }
 
-                draw_volume(surface, vmin, vmax, node.childs[i].ptr, depth+1);
+                draw_volume(surface, vmin-mintmp, vmax-mintmp, node.childs[i].ptr, depth+1);
             }
         }
     }

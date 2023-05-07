@@ -102,11 +102,13 @@ Octnode_ret static_octree_buffer::add(VoxelSurface lod_surface)
     }    
     else
     {
-        for(; pos < OCTREE_CHUNK_SIZE; pos++)
+        for(; bfirst_full < OCTREE_CHUNK_SIZE; bfirst_full++)
         {
-            if(*(uint32_t *)&nodes[pos].lod_surface == 0)
+            if(*(uint32_t *)&nodes[bfirst_full].lod_surface == 0)
                 break;
         }
+
+        pos = bfirst_full;
 
         if(pos == OCTREE_CHUNK_SIZE) is_full = true;
     }
@@ -128,6 +130,7 @@ void static_octree_buffer::remove(int pos)
     if(pos < uinterval_beg) uinterval_beg = pos;
     if(pos > uinterval_end) uinterval_end = pos;
     if(pos < bfrist_pos) bfrist_pos = pos;
+    if(bfrist_pos < bfirst_full) bfirst_full = bfrist_pos;
 
     is_full = false;
 }

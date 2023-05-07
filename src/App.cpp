@@ -164,19 +164,24 @@ void App::mainloop()
     // OctNode &node = World[0];
     // node.childs[0].surface = {0xe7, 0x4c, 0x3c, LEAF_LIMIT8};
 
+
     VoxelSurface surface = {0xe7, 0x4c, 0x3c, LEAF_LIMIT8};
 
     World[0].lod_surface.color.r = 255;
+    World.send_to_gpu();
     // World[0].childs[3].ptr.fullpos = 1;
     // World[1].parent.ptr.fullpos = 0;
 
-    vec3<int> position = vec3<int>(0, 0, 0);
-    vec3<int> size = vec3<int>(1024, 700, 1024);
+    // vec3<int> position = vec3<int>(512, 512, 512);
+    // vec3<int> size = vec3<int>(1024, 512+256, 1024);
 
-    World.draw_volume(surface,position - size/2, position + size/2);
+    // World.draw_volume(surface, position - size/2, position + size/2);
 
-    World.send_to_gpu();
-    // World.send_update();
+    World.draw_volume(surface, vec3<int>(0), vec3<int>(1024, 512+255, 1024));
+
+    World.draw_volume(surface, vec3<int>(201, 512, 201), vec3<int>(399, 1024, 399));
+
+    World.send_update();
 
     /// MAIN LOOP
     while(state != quit)

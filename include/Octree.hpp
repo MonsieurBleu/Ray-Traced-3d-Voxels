@@ -83,6 +83,7 @@ struct static_octree_buffer
 
     int size = 0;
     int bfrist_pos = OCTREE_CHUNK_SIZE; // buffer first empty position 
+    int bfirst_full = 0;
     bool is_full = false;
 
     int uinterval_beg = OCTREE_CHUNK_SIZE; // position of the start of the update interval
