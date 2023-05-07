@@ -53,6 +53,8 @@ class Camera
 
         // Teleport the camera to the given position
         void teleport(vec3<float> newpos);
+
+        bool toggle_mouse_follow() {return mouse_follow = !mouse_follow;};
 };
 
 

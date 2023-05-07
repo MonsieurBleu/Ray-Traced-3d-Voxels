@@ -63,6 +63,11 @@ void App::mainInput()
     {
         // glBufferSubData(GL_SHADER_STORAGE_BUFFER, offset, size, data); //to update partially
     }
+
+    if(glfwGetKey(window, GLFW_KEY_F1) == GLFW_PRESS)
+    {
+        camera.toggle_mouse_follow();
+    }   
 }
 
 
@@ -102,80 +107,13 @@ void App::mainloop()
     ShaderProgram test("shader/RTvox.frag", "shader/test.vert", "");
 
     test.activate();
-
     int winsize[2] = {1920, 1080};
     glUniform2iv(0, 1, winsize);
-
-    // World[1].lod_surface.color = {0xc7, 0x21, 0x8b};
-    // World[1].lod_surface.info  = 0;
-    // World[0].lod_surface.color = {0xc7, 0x21, 0x8b};
-    // World[0].lod_surface.info  = 0;
-    // for(int i = 0; i < 7; i++)
-    // // if(i == 0 || i == 1 || i == 4 || i == 5)
-    // {
-    //     World[0].childs[i].ptr.fullpos = 1;
-    //     World[0].childs[i].ptr.set_chunk_id(0);
-    // }
-    // for(int i = 0; i < 7; i++)
-    // {   
-    //     World[1].childs[i].ptr.fullpos = 1;
-    //     World[1].childs[i].ptr.set_chunk_id(0);
-    // }
-
-    // // Generating depth test
-    // for(int i = 0; i < 6; i++)
-    // {   
-    //     World[0].childs[i].surface.color = {0xc7, 0x21, 0x8b};
-    //     World[0].childs[i].surface.info  = LEAF_LIMIT8;
-    // }
-
-    // World[0].childs[3].ptr.pos = 1;
-    // World[0].childs[3].ptr.oct_chunk_pos = 0;
-    // for(int i = 0; i < 7; i++)
-    // {   
-    //     World[1].childs[i].surface.color = {0xc5, 0x69, 0xbd};
-    //     World[1].childs[i].surface.info  = LEAF_LIMIT8;
-    // }
-
-    // World[1].childs[3].ptr.pos = 2;
-    // World[1].childs[3].ptr.oct_chunk_pos = 0;
-    // for(int i = 0; i < 7; i++)
-    // {   
-    //     World[2].childs[i].surface.color = {0x2e, 0xcc, 0x71};
-    //     World[2].childs[i].surface.info  = LEAF_LIMIT8;
-    // }
-
-    // World[2].childs[3].ptr.pos = 3;
-    // World[2].childs[3].ptr.oct_chunk_pos = 0;
-    // for(int i = 0; i < 7; i++)
-    // {   
-    //     World[3].childs[i].surface.color = {0xff, 0xc3, 0x00};
-    //     World[3].childs[i].surface.info  = LEAF_LIMIT8;
-    // }
-
-    // World[3].childs[3].ptr.pos = 4;
-    // World[3].childs[3].ptr.oct_chunk_pos = 0;
-    // for(int i = 0; i < 7; i++)
-    // {   
-    //     World[4].childs[i].surface.color = {0xe7, 0x4c, 0x3c};
-    //     World[4].childs[i].surface.info  = LEAF_LIMIT8;
-    // }
-
-    // OctNode &node = World[0];
-    // node.childs[0].surface = {0xe7, 0x4c, 0x3c, LEAF_LIMIT8};
-
 
     VoxelSurface surface = {0xe7, 0x4c, 0x3c, LEAF_LIMIT8};
 
     World[0].lod_surface.color.r = 255;
     World.send_to_gpu();
-    // World[0].childs[3].ptr.fullpos = 1;
-    // World[1].parent.ptr.fullpos = 0;
-
-    // vec3<int> position = vec3<int>(512, 512, 512);
-    // vec3<int> size = vec3<int>(1024, 512+256, 1024);
-
-    // World.draw_volume(surface, position - size/2, position + size/2);
 
     World.draw_volume(surface, vec3<int>(0), vec3<int>(1024, 512+255, 1024));
 
@@ -187,6 +125,16 @@ void App::mainloop()
     while(state != quit)
     {
         glfwPollEvents();
+
+        if(glfwGetKey(window, GLFW_KEY_F5) == GLFW_PRESS)
+        {
+            system("cls");
+            glDeleteProgram(test.get_program());
+            test.CompileAndLink();
+            test.activate();
+            int winsize[2] = {1920, 1080};
+            glUniform2iv(0, 1, winsize);
+        }
 
         mainInput();
 

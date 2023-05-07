@@ -1,9 +1,7 @@
 #version 450
 
-// #define GETVOX_VISUALIZATION
+#define GETVOX_VISUALIZATION
 // #define DO_LODS
-
-// #define DEBUG_FRACTAL
 
 layout (location = 0) uniform ivec2 iResolution;
 layout (location = 1) uniform float iTime;
@@ -483,7 +481,7 @@ void getSubVoxels(int depth, vec3 origin, float size)
     }
 }
 
-Surface trace_old(vec3 origin, float size, int depth)
+Surface trace(vec3 origin, float size, int depth)
 {
     getSubVoxels(0, origin, size);
     int i[MAX_OCTDEPTH+1];
@@ -544,98 +542,6 @@ Surface trace_old(vec3 origin, float size, int depth)
 
     return voxel;
 }
-
-
-Surface trace(vec3 origin, float size, int depth)
-{
-    int i[MAX_OCTDEPTH+1];
-    int n[MAX_OCTDEPTH+1];
-    vec3 o[MAX_OCTDEPTH+1];
-
-    Surface voxel;
-    voxel.sd = MAXSD;
-
-    o[0] = origin;
-    n[0] = 0;
-
-    size *= 0.5;
-
-    int id = 0;
-
-    for(i[depth] = 0; i[depth] < 8; i[depth]++)
-    {
-        id = i[depth];
-
-        // GENERATE ORIGIN 
-        vec3 msign = vec3(-0.5);
-        if((id&1) == 1) msign.z = 0.5;
-        if((id&2) == 2) msign.y = 0.5;
-        if((id&4) == 4) msign.x = 0.5;
-        vec3 so = o[depth] + msign*size;
-
-        // GENERATE SUBVOXEL
-        Surface subvoxel = getvox(so, size*0.5);
-
-        // BRANCHING TO THE LOWER DEPTH
-
-    #ifdef DEBUG_FRACTAL
-        if(subvoxel.sd < voxel.sd)
-        {
-            int ptr = World[0].childs[id];
-
-            if(depth == MAX_OCTDEPTH)
-            {
-                voxel.sd = subvoxel.sd;
-                voxel.col = 0x00FFFF00;
-            }
-            else if(id <= 6)
-            {
-                size *= 0.5;
-                depth++;
-                o[depth] = so;
-                n[depth] = ptr;
-                i[depth] = 0;
-            }
-        }
-    #else
-        if(subvoxel.sd < voxel.sd)
-        {
-            int ptr = World[n[depth]].childs[id];
-
-            if(ptr >= LEAF_LIMIT)
-            {
-                voxel.sd = subvoxel.sd;
-                voxel.col = ptr&0x00FFFFFF;
-            }
-            else if(ptr != 0)
-            {
-                size *= 0.5;
-                depth++;
-                o[depth] = so;
-                n[depth] = ptr;
-                i[depth] = 0;
-            }
-            else if(depth == MAX_OCTDEPTH)
-            {
-                voxel.sd = subvoxel.sd;
-                voxel.col = World[n[depth]].col;
-            }
-        }
-    #endif
-
-        // BRANCHING TO THE HIGHER DEPTH
-        if(depth > 0 && i[depth] == 7)
-        {
-            depth--;
-            size *= 2.0;
-        }
-    }
-
-
-    return voxel;
-}
-
-
 
 vec3 rgb2hsv(vec3 c)
 {
