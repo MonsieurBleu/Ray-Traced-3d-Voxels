@@ -110,14 +110,14 @@ void App::mainloop()
     int winsize[2] = {1920, 1080};
     glUniform2iv(0, 1, winsize);
 
-    VoxelSurface surface = {0xe7, 0x4c, 0x3c, LEAF_LIMIT8};
-
     World[0].lod_surface.color.r = 255;
     World.send_to_gpu();
 
-    World.draw_volume(surface, vec3<int>(0), vec3<int>(1024, 512+255, 1024));
+    World.draw_volume({0xe7, 0x4c, 0x3c, LEAF_LIMIT8}, vec3<int>(0), vec3<int>(1024, 512+255, 1024));
 
-    World.draw_volume(surface, vec3<int>(201, 512, 201), vec3<int>(399, 1024, 399));
+    World.draw_volume({50, 200, 150, LEAF_LIMIT8}, vec3<int>(200, 512, 200), vec3<int>(400, 1024, 400));
+
+    World.draw_volume({200, 150, 50, LEAF_LIMIT8}, vec3<int>(200, 0, 200), vec3<int>(2000, 1016, 390));
 
     World.send_update();
 

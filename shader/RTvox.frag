@@ -196,8 +196,6 @@ Surface trace_no_sort(vec3 origin, float size, int depth)
     return voxel;
 }
 
-
-
 struct sort_subvoxl
 {
     Surface  surface;
@@ -335,7 +333,6 @@ Surface trace(vec3 origin, float size, int depth)
 
     return voxel;
 }
-
 
 vec3 rgb2hsv(vec3 c)
 {

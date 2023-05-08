@@ -57,8 +57,6 @@ void Map::draw_volume(VoxelSurface surface, vec3<int> vmin, vec3<int> vmax, OctP
     int dim = dimension>>depth;
     int hdim = dim>>1;
 
-
-
     if(depth > OCTREE_MAX_DEPTH) return;
 
     OctNode const &node = this->operator()(node_id.fullpos);
@@ -98,21 +96,24 @@ void Map::draw_volume(VoxelSurface surface, vec3<int> vmin, vec3<int> vmax, OctP
             {
                 // METTRE CODE POUR SUPPRIMER RECURSIVEMENT LA NODE
 
-                this->operator[](node_id.fullpos).childs[i].surface = surface;
+                (*this)[node_id.fullpos].childs[i].surface = surface;
             }
             else
             {
                 // RECURSIVE CALL
                 OctPointer ptr = node.childs[i].ptr;
 
-                if(!ptr.fullpos || ptr.fullpos&LEAF_LIMIT32)
+                if(!ptr.fullpos || ptr.fullpos > LEAF_LIMIT32)
                 {
                     Octnode_ret pos = add(surface);
                     // std::cout << "RECURSIVE CALL" << pos.pos << "\n";
 
                     pos.node->lod_surface = surface;
 
-                    this->operator[](node_id.fullpos).childs[i].ptr.fullpos = pos.pos;
+                    for(char i = 0; i < 8; i++)
+                        pos.node->childs[i].ptr = ptr;
+                    
+                    (*this)[node_id.fullpos].childs[i].ptr.fullpos = pos.pos;
                 }
 
                 draw_volume(surface, vmin-mintmp, vmax-mintmp, node.childs[i].ptr, depth+1);
