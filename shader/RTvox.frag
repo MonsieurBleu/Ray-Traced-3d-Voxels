@@ -113,17 +113,17 @@ Surface getvox(const vec3 pos, const float hsize)
 
     if(tmax >= tmin && tmax > 0.0)
         return_val.sd = tmin;
-    // else 
-    //     return return_val;
+    else 
+        return return_val;
     
-    // if(return_val.sd == tx1 || return_val.sd == tx2)
-    //     return_val.side = voxside_x;
+    if(return_val.sd == tx1 || return_val.sd == tx2)
+        return_val.side = voxside_x;
 
-    // if(return_val.sd == ty1 || return_val.sd == ty2)
-    //     return_val.side = voxside_y;
+    if(return_val.sd == ty1 || return_val.sd == ty2)
+        return_val.side = voxside_y;
 
-    // if(return_val.sd == tz1 || return_val.sd == tz2)
-    //     return_val.side = voxside_z;
+    if(return_val.sd == tz1 || return_val.sd == tz2)
+        return_val.side = voxside_z;
 
     return return_val;
 }
@@ -549,12 +549,13 @@ Surface trace_old(vec3 origin, float size, int depth)
 Surface trace(vec3 origin, float size, int depth)
 {
     int i[MAX_OCTDEPTH+1];
-    int n[MAX_OCTDEPTH+1];
+    uint n[MAX_OCTDEPTH+1];
     vec3 o[MAX_OCTDEPTH+1];
 
     Surface voxel;
     voxel.sd = MAXSD;
 
+    i[0] = 0;
     o[0] = origin;
     n[0] = 0;
 
@@ -562,7 +563,8 @@ Surface trace(vec3 origin, float size, int depth)
 
     int id = 0;
 
-    for(i[depth] = 0; i[depth] < 8; i[depth]++)
+    // for(i[depth] = 0; i[0] < 8; i[depth]++)
+    while(i[0] < 8)
     {
         id = i[depth];
 
@@ -577,11 +579,10 @@ Surface trace(vec3 origin, float size, int depth)
         Surface subvoxel = getvox(so, size*0.5);
 
         // BRANCHING TO THE LOWER DEPTH
-
     #ifdef DEBUG_FRACTAL
         if(subvoxel.sd < voxel.sd)
         {
-            int ptr = World[0].childs[id];
+            uint ptr = uint(World[0].childs[id]);
 
             if(depth == MAX_OCTDEPTH)
             {
@@ -598,13 +599,13 @@ Surface trace(vec3 origin, float size, int depth)
             }
         }
     #else
-        if(subvoxel.sd < voxel.sd)
+        if(subvoxel.sd < MAXSD)
         {
-            int ptr = World[n[depth]].childs[id];
+            uint ptr = uint(World[n[depth]].childs[id]);
 
-            if(ptr >= LEAF_LIMIT)
+            if(ptr >= LEAF_LIMIT && subvoxel.sd < voxel.sd)
             {
-                voxel.sd = subvoxel.sd;
+                voxel = subvoxel;
                 voxel.col = ptr&0x00FFFFFF;
             }
             else if(ptr != 0)
@@ -615,7 +616,7 @@ Surface trace(vec3 origin, float size, int depth)
                 n[depth] = ptr;
                 i[depth] = 0;
             }
-            else if(depth == MAX_OCTDEPTH)
+            else if(depth == MAX_OCTDEPTH && subvoxel.sd < voxel.sd)
             {
                 voxel.sd = subvoxel.sd;
                 voxel.col = World[n[depth]].col;
@@ -623,12 +624,15 @@ Surface trace(vec3 origin, float size, int depth)
         }
     #endif
 
+
         // BRANCHING TO THE HIGHER DEPTH
-        if(depth > 0 && i[depth] == 7)
+        while(depth > 0 && i[depth] > 7)
         {
             depth--;
             size *= 2.0;
         }
+        
+        i[depth] ++;
     }
 
 

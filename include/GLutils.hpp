@@ -3,6 +3,8 @@
 
 #include <iostream>
 
+#include <string.h>
+
 #include <GL/glew.h>
 #define GLFW_DLL
 #include <GLFW/glfw3.h>
@@ -74,6 +76,9 @@ void GLAPIENTRY MessageCallback(GLenum _source,
                                 const GLchar* message,
                                 const void* userParam )
 {
+    if(id = 1281) // Invalid shader programm, spam if a shader fail to compile
+        return;
+
     const std::string *color = &TERMINAL_RESET;
     BlueGLenum severity(_severity);
     BlueGLenum type(_type);
@@ -98,6 +103,7 @@ void GLAPIENTRY MessageCallback(GLenum _source,
 
     std::cerr
     << TERMINAL_NOTIF << "\nGL CALLBACK "       << *color << "[" << type << "]"
+    << TERMINAL_RESET << "\n\tid       = "        << *color << id
     << TERMINAL_RESET << "\n\tfrom     = "      << *color << source
     << TERMINAL_RESET << "\n\tseverity = "      << *color << severity
     << TERMINAL_RESET << "\n\tmessage  = "      << *color << message
