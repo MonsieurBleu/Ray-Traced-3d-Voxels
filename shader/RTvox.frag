@@ -1,9 +1,8 @@
 #version 450
 
 // #define GETVOX_VISUALIZATION
-// #define DO_LODS
-
 // #define DEBUG_FRACTAL
+// #define DO_LODS
 
 layout (location = 0) uniform ivec2 iResolution;
 layout (location = 1) uniform float iTime;
@@ -50,30 +49,6 @@ struct Surface
     uint col;
     lowp int side;
 };
-
-struct trace_recstat
-{
-    Surface subvoxels[4];
-    vec3 suborigin[4];
-    int nodes[4];
-    float size;
-    int curNode;
-};
-
-trace_recstat stack[MAX_OCTDEPTH];
-
-// trace_recstat stack[MAX_OCTDEPTH] = {
-//         {{{0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}}, {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}, {0, 0, 0, 0}, 0.0, 0},
-//         {{{0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}}, {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}, {0, 0, 0, 0}, 0.0, 0},
-//         {{{0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}}, {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}, {0, 0, 0, 0}, 0.0, 0},
-//         {{{0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}}, {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}, {0, 0, 0, 0}, 0.0, 0},
-//         {{{0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}}, {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}, {0, 0, 0, 0}, 0.0, 0},
-//         {{{0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}}, {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}, {0, 0, 0, 0}, 0.0, 0},
-//         {{{0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}}, {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}, {0, 0, 0, 0}, 0.0, 0},
-//         {{{0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}}, {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}, {0, 0, 0, 0}, 0.0, 0},
-//         {{{0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}}, {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}, {0, 0, 0, 0}, 0.0, 0},
-//         {{{0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}, {0.0, 0, 0}}, {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}, {0, 0, 0, 0}, 0.0, 0}
-//     };
 
 #ifdef GETVOX_VISUALIZATION
 uint getvoxcnt = 0;
@@ -128,425 +103,8 @@ Surface getvox(const vec3 pos, const float hsize)
     return return_val;
 }
 
-Surface getvox_old2(const vec3 pos, const float size)
-{
-    #ifdef GETVOX_VISUALIZATION
-    getvoxcnt ++;
-    #endif
 
-    vec3 maxp = pos + size*0.5;
-    vec3 minp = pos - size*0.5;
-    vec3 cpicd = -campos*icamdir;
-    vec3 minpicd = minp*icamdir;
-    vec3 maxpicd = maxp*icamdir;
-
-    vec3 p;
-    float t;
-
-    Surface return_val;
-    return_val.sd = MAXSD;
-
-    //////////////// X //////////////
-    t = minpicd.x + cpicd.x;
-    p.yz = campos.yz + t*camdir.yz;
-    if(t < return_val.sd && p.y >= minp.y && p.y <= maxp.y && p.z >= minp.z && p.z <= maxp.z)
-    {
-        return_val.sd = t;
-        return_val.side = voxside_x;
-    }
-    t = maxpicd.x + cpicd.x;
-    p.yz = campos.yz + t*camdir.yz;
-    if(t < return_val.sd && p.y >= minp.y && p.y <= maxp.y && p.z >= minp.z && p.z <= maxp.z)
-    {
-        return_val.sd = t;
-        return_val.side = voxside_x;
-    }
-
-    //////////////// Y //////////////
-
-    t = maxpicd.y + cpicd.y;
-    p.xz = campos.xz + t*camdir.xz;
-    if(t < return_val.sd && p.x >= minp.x && p.x <= maxp.x && p.z >= minp.z && p.z <= maxp.z)
-    {
-        return_val.sd = t;
-        return_val.side = voxside_y;
-    }
-
-    t = minpicd.y + cpicd.y;
-    p.xz = campos.xz + t*camdir.xz;
-    if(t < return_val.sd && p.x >= minp.x && p.x <= maxp.x && p.z >= minp.z && p.z <= maxp.z)
-    {
-        return_val.sd = t;
-        return_val.side = voxside_y;
-    }
-
-    //////////////// Z //////////////
-    t = minpicd.z + cpicd.z;
-    p.xy = campos.xy + t*camdir.xy;
-    if(t < return_val.sd && p.x >= minp.x && p.x <= maxp.x && p.y >= minp.y && p.y <= maxp.y)
-    {
-        return_val.sd = t;
-        return_val.side = voxside_z;
-    }
-
-    t = maxpicd.z + cpicd.z;
-    p.xy = campos.xy + t*camdir.xy;
-    if(t < return_val.sd && p.x >= minp.x && p.x <= maxp.x && p.y >= minp.y && p.y <= maxp.y)
-    {
-        return_val.sd = t;
-        return_val.side = voxside_z;
-    }
-
-    // if(return_val.sd < 0.0)
-    //     return_val.sd = MAXSD;
-
-    return return_val;
-}
-
-Surface getvox_old(const vec3 pos, const float size)
-{
-    vec3 maxp = pos + size*0.5;
-    vec3 minp = pos - size*0.5;
-    vec3 cpicd = -campos*icamdir;
-    vec3 minpicd = minp*icamdir;
-    vec3 maxpicd = maxp*icamdir;
-
-    vec3 p;
-    float t;
-
-    Surface return_val;
-    return_val.sd = MAXSD;
-
-    //////////////// X //////////////
-    if(camdir.x > 0.0)
-    {
-        t = minpicd.x + cpicd.x;
-        p.yz = campos.yz + t*camdir.yz;
-        if(t < return_val.sd && p.y >= minp.y && p.y <= maxp.y && p.z >= minp.z && p.z <= maxp.z)
-        {
-            return_val.sd = t;
-            return_val.side = voxside_x;
-        }
-    }
-    else
-    {
-        t = maxpicd.x + cpicd.x;
-        p.yz = campos.yz + t*camdir.yz;
-        if(t < return_val.sd && p.y >= minp.y && p.y <= maxp.y && p.z >= minp.z && p.z <= maxp.z)
-        {
-            return_val.sd = t;
-            return_val.side = voxside_x;
-        }
-    }
-
-    //////////////// Y //////////////
-    if(camdir.y < 0.0)
-    {
-        t = maxpicd.y + cpicd.y;
-        p.xz = campos.xz + t*camdir.xz;
-        if(t < return_val.sd && p.x >= minp.x && p.x <= maxp.x && p.z >= minp.z && p.z <= maxp.z)
-        {
-            return_val.sd = t;
-            return_val.side = voxside_y;
-        }
-    }
-    else
-    {
-        t = minpicd.y + cpicd.y;
-        p.xz = campos.xz + t*camdir.xz;
-        if(t < return_val.sd && p.x >= minp.x && p.x <= maxp.x && p.z >= minp.z && p.z <= maxp.z)
-        {
-            return_val.sd = t;
-            return_val.side = voxside_y;
-        }
-
-    }
-
-    //////////////// Z //////////////
-    if(camdir.z > 0.0)
-    {
-        t = minpicd.z + cpicd.z;
-        p.xy = campos.xy + t*camdir.xy;
-        if(t < return_val.sd && p.x >= minp.x && p.x <= maxp.x && p.y >= minp.y && p.y <= maxp.y)
-        {
-            return_val.sd = t;
-            return_val.side = voxside_z;
-        }
-    }
-    else
-    {
-        t = maxpicd.z + cpicd.z;
-        p.xy = campos.xy + t*camdir.xy;
-        if(t < return_val.sd && p.x >= minp.x && p.x <= maxp.x && p.y >= minp.y && p.y <= maxp.y)
-        {
-            return_val.sd = t;
-            return_val.side = voxside_z;
-        }
-    }
-
-    return return_val;
-}
-
-mat3 camera(vec3 cameraPos, vec3 lookAtPoint) {
-	vec3 cd = normalize(lookAtPoint - cameraPos); // camera direction
-	vec3 cr = normalize(cross(vec3(0, 1, 0), cd)); // camera right
-	vec3 cu = normalize(cross(cd, cr)); // camera up
-	
-	return mat3(-cr, cu, -cd);
-}
-
-// Rotate around a circular path
-mat2 rotate2d(float theta) {
-  float s = sin(theta), c = cos(theta);
-  return mat2(c, -s, s, c);
-}
-
-void getSubVoxels(int depth, vec3 origin, float size)
-{
-    float hsize = size*0.5;
-    float qsize = size*0.25;
-
-    stack[depth].size = hsize;
-
-    OctNode node = World[stack[depth].curNode];
-
-    // INITIALIZATION
-    int cnt = 0;
-    lowp int id[4];
-    Surface sd[4];
-    sd[0].sd = MAXSD;
-    sd[1].sd = MAXSD;
-    sd[2].sd = MAXSD;
-    sd[3].sd = MAXSD;
-    id[0] = 0;
-    id[1] = 0;
-    id[2] = 0;
-    id[3] = 0;
-
-    vec3 suborigin[8];
-    suborigin[0] = vec3(origin.x - qsize, origin.y - qsize, origin.z - qsize);
-    suborigin[1] = vec3(origin.x - qsize, origin.y - qsize, origin.z + qsize);
-    suborigin[2] = vec3(origin.x - qsize, origin.y + qsize, origin.z - qsize);
-    suborigin[3] = vec3(origin.x - qsize, origin.y + qsize, origin.z + qsize);
-    suborigin[4] = vec3(origin.x + qsize, origin.y - qsize, origin.z - qsize);
-    suborigin[5] = vec3(origin.x + qsize, origin.y - qsize, origin.z + qsize);
-    suborigin[6] = vec3(origin.x + qsize, origin.y + qsize, origin.z - qsize);
-    suborigin[7] = vec3(origin.x + qsize, origin.y + qsize, origin.z + qsize);
-
-    Surface t;
-
-
-    // GETTING COLLISION WITH RAY
-
-    for(int i = 0; i < 8; i++)
-    {
-        // if(node.childs[i] != 0)
-        // {
-            t = getvox(suborigin[i], qsize);
-
-            if(node.childs[i] != 0 && t.sd < MAXSD)
-            {
-                id[cnt] = i;
-                sd[cnt] = t;
-                cnt++;
-            }
-        // }
-    }
-
-    // if(node.childs[0] != 0)
-    // {
-    //     t = getvox(suborigin[0], qsize);
-
-    //     if(t.sd != MAXSD)
-    //     {
-    //         id[cnt] = 0;
-    //         sd[cnt] = t;
-    //         cnt++;
-    //     }
-    // }
-    // if(node.childs[1] != 0)
-    // {
-    //     t = getvox(suborigin[1], qsize);
-
-    //     if(t.sd != MAXSD)
-    //     {
-    //         id[cnt] = 1;
-    //         sd[cnt] = t;
-    //         cnt++;
-    //     }
-    // }
-    // if(node.childs[2] != 0)
-    // {
-    //     t = getvox(suborigin[2], qsize);
-
-    //     if(t.sd != MAXSD)
-    //     {
-    //         id[cnt] = 2;
-    //         sd[cnt] = t;
-    //         cnt++;
-    //     }
-    // }
-    // if(node.childs[3] != 0)
-    // {
-    //     t = getvox(suborigin[3], qsize);
-
-    //     if(t.sd != MAXSD)
-    //     {
-    //         id[cnt] = 3;
-    //         sd[cnt] = t;
-    //         cnt++;
-    //     }
-    // }
-    // if(node.childs[4] != 0)
-    // {
-    //     t = getvox(suborigin[4], qsize);
-
-    //     if(t.sd != MAXSD)
-    //     {
-    //         id[cnt] = 4;
-    //         sd[cnt] = t;
-    //         cnt++;
-    //     }
-    // }
-    // if(node.childs[5] != 0)
-    // {
-    //     t = getvox(suborigin[5], qsize);
-
-    //     if(t.sd != MAXSD)
-    //     {
-    //         id[cnt] = 5;
-    //         sd[cnt] = t;
-    //         cnt++;
-    //     }
-    // }
-    // if(node.childs[6] != 0)
-    // {
-    //     t = getvox(suborigin[6], qsize);
-
-    //     if(t.sd != MAXSD)
-    //     {
-    //         id[cnt] = 6;
-    //         sd[cnt] = t;
-    //         cnt++;
-    //     }
-    // }
-    // if(node.childs[7] != 0)
-    // {
-    //     t = getvox(suborigin[7], qsize);
-
-    //     if(t.sd != MAXSD)
-    //     {
-    //         id[cnt] = 7;
-    //         sd[cnt] = t;
-    //         cnt++;
-    //     }
-    // }
-
-
-    // SORTING RESULT
-    if(sd[0].sd > sd[1].sd)
-    {
-        Surface   tmp = sd[0]; sd[0] = sd[1]; sd[1] = tmp;
-        lowp int stmp = id[0]; id[0] = id[1]; id[1] = stmp;
-    }
-    if(sd[2].sd > sd[3].sd)
-    {
-        Surface   tmp = sd[2]; sd[2] = sd[3]; sd[3] = tmp;
-        lowp int stmp = id[2]; id[2] = id[3]; id[3] = stmp;
-    }
-    if(sd[0].sd > sd[2].sd)
-    {
-        Surface   tmp = sd[0]; sd[0] = sd[2]; sd[2] = tmp;
-        lowp int stmp = id[0]; id[0] = id[2]; id[2] = stmp;
-    }
-    if(sd[1].sd > sd[3].sd)
-    {
-        Surface   tmp = sd[1]; sd[1] = sd[3]; sd[3] = tmp;
-        lowp int stmp = id[1]; id[1] = id[3]; id[3] = stmp;
-    }
-    if(sd[1].sd > sd[2].sd)
-    {
-        Surface   tmp = sd[1]; sd[1] = sd[2]; sd[2] = tmp;
-        lowp int stmp = id[1]; id[1] = id[2]; id[2] = stmp;
-    }
-
-    // APPLYING SORTED RESULT
-    for(int i = 0; i < 4; i++)
-    {
-        stack[depth].subvoxels[i] = sd[i];
-
-        if(sd[i].sd < MAXSD)
-        {
-            stack[depth].suborigin[i] = suborigin[id[i]];
-            stack[depth].nodes[i] = node.childs[id[i]];
-        }
-    }
-}
-
-Surface trace_old(vec3 origin, float size, int depth)
-{
-    getSubVoxels(0, origin, size);
-    int i[MAX_OCTDEPTH+1];
-    
-    i[0] = 0;
-
-    Surface voxel;
-    voxel.sd = MAXSD;
-
-    stack[depth].curNode = 0;
-
-    for(i[depth] = 0; i[depth] < 4; i[depth]++)
-    {
-        Surface csvoxel = stack[depth].subvoxels[i[depth]];
-        if(csvoxel.sd < MAXSD)
-        {
-            #ifdef DO_LODS
-            
-            int maxd = MAX_OCTDEPTH - int(distance(stack[depth].suborigin[i[depth]], campos)*0.00004);
-            if(maxd < 0) maxd = 0;
-            
-            #else
-
-            int maxd = MAX_OCTDEPTH ;
-
-            #endif
-
-
-            if(depth >= maxd)
-            {  
-                csvoxel.col = World[stack[depth-1].curNode].col;
-                return csvoxel;
-            }
-
-            uint col = uint(stack[depth].nodes[i[depth]]);
-
-            if(col >= LEAF_LIMIT)
-            {
-                csvoxel.col = col;
-                return csvoxel;
-            }
-
-            else
-            {
-                stack[depth+1].curNode = stack[depth].nodes[i[depth]];
-                getSubVoxels(depth+1, stack[depth].suborigin[i[depth]], stack[depth].size);
-                depth++;
-                i[depth] = -1;
-            }
-        }
-
-        if(depth > 0 && i[depth] == 3)
-        {
-            // i[depth] = -1;
-            depth--;
-        }
-    }
-
-    return voxel;
-}
-
-
-Surface trace(vec3 origin, float size, int depth)
+Surface trace_no_sort(vec3 origin, float size, int depth)
 {
     int i[MAX_OCTDEPTH+1];
     uint n[MAX_OCTDEPTH+1];
@@ -614,7 +172,7 @@ Surface trace(vec3 origin, float size, int depth)
                 depth++;
                 o[depth] = so;
                 n[depth] = ptr;
-                i[depth] = 0;
+                i[depth] = -1;
             }
             else if(depth == MAX_OCTDEPTH && subvoxel.sd < voxel.sd)
             {
@@ -623,7 +181,6 @@ Surface trace(vec3 origin, float size, int depth)
             }
         }
     #endif
-
 
         // BRANCHING TO THE HIGHER DEPTH
         while(depth > 0 && i[depth] > 7)
@@ -639,6 +196,145 @@ Surface trace(vec3 origin, float size, int depth)
     return voxel;
 }
 
+
+
+struct sort_subvoxl
+{
+    Surface  surface;
+    lowp int id;
+};
+
+vec3 get_origin(lowp int id, float size, vec3 o)
+{
+    vec3 msign = vec3(-1.0);
+
+    if((id&1) == 1) msign.z = 1.0;
+    if((id&2) == 2) msign.y = 1.0;
+    if((id&4) == 4) msign.x = 1.0;
+
+    return o + msign*size;
+}
+
+Surface trace(vec3 origin, float size, int depth)
+{
+    lowp int  i[MAX_OCTDEPTH+1];
+    uint n[MAX_OCTDEPTH+1];
+    vec3 o[MAX_OCTDEPTH+1];
+    sort_subvoxl s[MAX_OCTDEPTH+1][4];
+
+    Surface voxel;
+    voxel.sd = MAXSD;
+
+    i[0] = -1;
+    n[0] = 0;
+    o[0] = origin;
+
+    int cnt;
+
+    sort_subvoxl tmp;
+
+    size *= 0.25;
+
+    while(i[0] < 4)
+    {
+        // CREATING SUBVOXELS FOR THIS DEPTH
+        if(i[depth] == -1)
+        {
+            // INITIALAZING SUBVOXELS
+            s[depth][0].surface.sd = MAXSD;
+            s[depth][1].surface.sd = MAXSD;
+            s[depth][2].surface.sd = MAXSD;
+            s[depth][3].surface.sd = MAXSD;
+            cnt = 0;
+
+            // GENERATING SUBVOXELS
+            for(int j = 0; j < 8 && cnt < 4; j++)
+            {
+                // GENERATING ORIGIN 
+                vec3 so = get_origin(j, size, o[depth]);
+
+                // TESTING COLLISION
+                Surface t = getvox(so, size);
+
+            #ifdef DEBUG_FRACTAL
+                if(t.sd < MAXSD && j <= 6)
+            #else
+                if(t.sd < MAXSD && World[n[depth]].childs[j] != 0)
+            #endif
+                {
+                    s[depth][cnt].surface = t;
+                    s[depth][cnt].id = j;
+                    cnt++;
+                }
+            }
+
+            // SORTING SUBVOXELS 
+            if(s[depth][0].surface.sd > s[depth][1].surface.sd) {tmp = s[depth][0]; s[depth][0] = s[depth][1]; s[depth][1] = tmp;}
+            if(s[depth][2].surface.sd > s[depth][3].surface.sd) {tmp = s[depth][2]; s[depth][2] = s[depth][3]; s[depth][3] = tmp;}
+            if(s[depth][0].surface.sd > s[depth][2].surface.sd) {tmp = s[depth][0]; s[depth][0] = s[depth][2]; s[depth][2] = tmp;}
+            if(s[depth][1].surface.sd > s[depth][3].surface.sd) {tmp = s[depth][1]; s[depth][1] = s[depth][3]; s[depth][3] = tmp;}
+            if(s[depth][1].surface.sd > s[depth][2].surface.sd) {tmp = s[depth][1]; s[depth][1] = s[depth][2]; s[depth][2] = tmp;}
+        
+            i[depth] = 0;
+        }
+
+        // CHECKING SUBVOXELS 
+        for(; i[depth] < 4; i[depth]++)
+        {
+            lowp int j = i[depth];
+            if(s[depth][j].surface.sd < MAXSD)
+            {
+                // INFINITE LOOP SECURITY
+                if(depth >= MAX_OCTDEPTH)
+                {
+                    voxel = s[depth][j].surface;
+
+                #ifdef DEBUG_FRACTAL
+                    voxel.col = 0x0000FFFF;
+                #else 
+                    voxel.col = World[n[depth]].col;
+                #endif
+                    return voxel;
+                }
+
+                // GETING VOXEL/NODE POINTER FROM THE WORLD
+            #ifdef DEBUG_FRACTAL
+                uint ptr = 0x0000FFFF;    
+            #else
+                uint ptr = World[n[depth]].childs[s[depth][j].id];
+            #endif
+
+                // LEAF CHECKING
+                if(ptr >= LEAF_LIMIT)
+                {
+                    voxel = s[depth][j].surface;
+
+                    voxel.col = ptr;
+                    return voxel;
+                }
+                
+                // BRANCHING TO THE HIGHER DEPTH
+                i[depth] ++;
+                depth ++;
+                i[depth] = -1;
+                n[depth] = ptr;
+                o[depth] = get_origin(s[depth-1][j].id, size, o[depth-1]);
+                size *= 0.5;
+
+                break;
+            }
+        }
+
+        // BRANCHING TO THE LOWER DEPTH
+        if(depth > 0 && i[depth] >= 4)
+        {
+            depth --;
+            size *= 2.0;
+        }
+    } 
+
+    return voxel;
+}
 
 
 vec3 rgb2hsv(vec3 c)
