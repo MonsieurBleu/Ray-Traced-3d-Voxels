@@ -113,11 +113,23 @@ void App::mainloop()
     World[0].lod_surface.color.r = 255;
     World.send_to_gpu();
 
-    World.draw_volume({0xe7, 0x4c, 0x3c, LEAF_LIMIT8}, vec3<int>(0), vec3<int>(1024, 512+255, 1024));
+    int height = 512;
 
-    World.draw_volume({50, 200, 150, LEAF_LIMIT8}, vec3<int>(200, 512, 200), vec3<int>(400, 1024, 400));
+    World.draw_volume({200, 150, 50, LEAF_LIMIT8}, vec3<int>(0, 0, 0),   vec3<int>(512, height, 512));
 
-    World.draw_volume({200, 150, 50, LEAF_LIMIT8}, vec3<int>(200, 0, 200), vec3<int>(2000, 1016, 390));
+    World.draw_volume({50, 150, 200, LEAF_LIMIT8}, vec3<int>(512, 0, 0), vec3<int>(768, height, 256));
+
+    World.draw_volume({50, 200, 150, LEAF_LIMIT8}, vec3<int>(768, 0, 0), vec3<int>(896, height, 128));
+
+    World.draw_volume({200, 50, 150, LEAF_LIMIT8}, vec3<int>(896, 0, 0), vec3<int>(960, height, 64));
+
+    World.draw_volume({200, 50, 150, LEAF_LIMIT8}, vec3<int>(960, 0, 0), vec3<int>(992, height, 32));
+
+    World.draw_volume({150, 50, 200, LEAF_LIMIT8}, vec3<int>(992, 0, 0), vec3<int>(1008, height, 16));
+
+    World.draw_volume({150, 200, 50, LEAF_LIMIT8}, vec3<int>(1008, 0, 0), vec3<int>(1016, height, 8));
+
+    World.draw_volume({200, 200, 200, LEAF_LIMIT8}, vec3<int>(0, 0, 0), vec3<int>(1024, height, 4));
 
     World.send_update();
 

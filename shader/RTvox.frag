@@ -1,6 +1,6 @@
 #version 450
 
-// #define GETVOX_VISUALIZATION
+#define GETVOX_VISUALIZATION
 // #define DEBUG_FRACTAL
 // #define DO_LODS
 

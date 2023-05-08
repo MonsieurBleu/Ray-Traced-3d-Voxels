@@ -57,7 +57,7 @@ void Map::draw_volume(VoxelSurface surface, vec3<int> vmin, vec3<int> vmax, OctP
     int dim = dimension>>depth;
     int hdim = dim>>1;
 
-    if(depth > OCTREE_MAX_DEPTH) return;
+    if(depth >= OCTREE_MAX_DEPTH) return;
 
     OctNode const &node = this->operator()(node_id.fullpos);
 
@@ -86,13 +86,13 @@ void Map::draw_volume(VoxelSurface surface, vec3<int> vmin, vec3<int> vmax, OctP
         }
 
 
-        if(vmax.x >= mintmp.x && vmin.x <= maxtmp.x &&
-           vmax.y >= mintmp.y && vmin.y <= maxtmp.y &&
-           vmax.z >= mintmp.z && vmin.z <= maxtmp.z)
+        if(vmax.x > mintmp.x && vmin.x < maxtmp.x &&
+           vmax.y > mintmp.y && vmin.y < maxtmp.y &&
+           vmax.z > mintmp.z && vmin.z < maxtmp.z)
         {
-            if(vmax.x >= maxtmp.x && vmin.x <= mintmp.x &&
-               vmax.y >= maxtmp.y && vmin.y <= mintmp.y &&
-               vmax.z >= maxtmp.z && vmin.z <= mintmp.z)
+            if(vmax.x > maxtmp.x && vmin.x < mintmp.x &&
+               vmax.y > maxtmp.y && vmin.y < mintmp.y &&
+               vmax.z > maxtmp.z && vmin.z < mintmp.z)
             {
                 // METTRE CODE POUR SUPPRIMER RECURSIVEMENT LA NODE
 

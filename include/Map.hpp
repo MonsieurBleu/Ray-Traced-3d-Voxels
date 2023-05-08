@@ -14,8 +14,8 @@ class Map
         static_octree_buffer chunks[OCTREE_CHUNK_NB];
         uint8_t Maxdepth = OCTREE_MAX_DEPTH;
 
-        int dimension = 2<<OCTREE_MAX_DEPTH;
-        int hdimension = 1<<OCTREE_MAX_DEPTH;
+        int dimension = 4<<OCTREE_MAX_DEPTH;
+        int hdimension = 2<<OCTREE_MAX_DEPTH;
 
     public :
 
@@ -30,7 +30,7 @@ class Map
                          vec3<int> vmin, 
                          vec3<int> vmax, 
                          OctPointer node_id = WORLD_OPTR,
-                         int depth = 0);  
+                         int depth = 1);  
 
 
         void remove(int id);
