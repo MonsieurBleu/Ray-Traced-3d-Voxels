@@ -1,6 +1,6 @@
 #version 450
 
-#define GETVOX_VISUALIZATION
+// #define GETVOX_VISUALIZATION
 // #define DEBUG_FRACTAL
 // #define DO_LODS
 
@@ -204,13 +204,19 @@ struct sort_subvoxl
 
 vec3 get_origin(lowp int id, float size, vec3 o)
 {
-    vec3 msign = vec3(-1.0);
+    switch ( id ) 
+    {
+        case 0 : return vec3(o.x - size, o.y - size, o.z - size);
+        case 1 : return vec3(o.x - size, o.y - size, o.z + size);
+        case 2 : return vec3(o.x - size, o.y + size, o.z - size);
+        case 3 : return vec3(o.x - size, o.y + size, o.z + size);
+        case 4 : return vec3(o.x + size, o.y - size, o.z - size);
+        case 5 : return vec3(o.x + size, o.y - size, o.z + size);
+        case 6 : return vec3(o.x + size, o.y + size, o.z - size);
+        case 7 : return vec3(o.x + size, o.y + size, o.z + size);
+    }
 
-    if((id&1) == 1) msign.z = 1.0;
-    if((id&2) == 2) msign.y = 1.0;
-    if((id&4) == 4) msign.x = 1.0;
-
-    return o + msign*size;
+    return o;
 }
 
 Surface trace(vec3 origin, float size, int depth)

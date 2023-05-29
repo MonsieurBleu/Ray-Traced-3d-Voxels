@@ -107,12 +107,40 @@ void App::mainloop()
     ShaderProgram test("shader/RTvox.frag", "shader/test.vert", "");
 
     test.activate();
+    int winsizeh[2] = {1920/2, 1080/2};
+    glUniform2iv(0, 1, winsizeh);
+
+
+    ShaderProgram pp("shader/post_process.frag", "shader/post_process.vert", "");
+    pp.activate();
     int winsize[2] = {1920, 1080};
     glUniform2iv(0, 1, winsize);
 
+
+    // CREATING A FRAMEBUFFER
+    GLuint frameBuffer;
+    glGenFramebuffers(1, &frameBuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+    GLuint texColorBuffer;
+    glGenTextures(1, &texColorBuffer);
+    glBindTexture(GL_TEXTURE_2D, texColorBuffer);
+
+    glTexImage2D(
+        GL_TEXTURE_2D, 0, GL_RGB, 1920/2, 1080/2, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL
+    );
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glFramebufferTexture2D(
+    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texColorBuffer, 0);
+
+
+
+
+    /// DRAWING THE WORLD
     World[0].lod_surface.color.r = 255;
     World.send_to_gpu();
-
     int height = 512;
 
     World.draw_volume({200, 150, 50, LEAF_LIMIT8}, vec3<int>(0, 0, 0),   vec3<int>(512, height, 512));
@@ -153,6 +181,8 @@ void App::mainloop()
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         
+
+        glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
         test.activate();
         glBindVertexArray(vao);
 
@@ -166,6 +196,18 @@ void App::mainloop()
         // draw points 0-3 from the currently bound VAO with current in-use shader
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        pp.activate();
+        // glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, frameBuffer);
+
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        // glActiveTexture(GL_TEXTURE0);
+
         glfwSwapBuffers(window);
     }
+
+    glDeleteFramebuffers(1, &frameBuffer);
 }
